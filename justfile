@@ -1,6 +1,9 @@
 install-deps:
     cargo install cargo-nextest cargo-watch
 
+test:
+    cargo nextest run
+
 run DAY:
     cargo run --bin day{{trim_start_match(lowercase(DAY), "day")}}
 
