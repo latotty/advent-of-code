@@ -53,8 +53,10 @@ fn process1(input: &str) -> usize {
                     "blue" => 2,
                     _ => panic!("Nope"),
                 };
-                max_balls_used[ball_color_idx] =
-                    cmp::max(max_balls_used[ball_color_idx], ball_amount);
+                max_balls_used[ball_color_idx] = cmp::max(
+                    max_balls_used[ball_color_idx],
+                    ball_amount,
+                );
             }
         }
 
@@ -96,8 +98,10 @@ fn process2(input: &str) -> usize {
                     "blue" => 2,
                     _ => panic!("Nope"),
                 };
-                max_balls_used[ball_color_idx] =
-                    cmp::max(max_balls_used[ball_color_idx], ball_amount);
+                max_balls_used[ball_color_idx] = cmp::max(
+                    max_balls_used[ball_color_idx],
+                    ball_amount,
+                );
             }
         }
 

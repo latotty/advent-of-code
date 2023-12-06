@@ -16,7 +16,11 @@ fn process1(input: &str) -> u64 {
     let mut lines = input
         .lines()
         .map(|line| line.split(' ').filter_map(|s| s.parse::<u64>().ok()));
-    let input: Vec<(u64, u64)> = zip(lines.next().unwrap(), lines.next().unwrap()).collect();
+    let input: Vec<(u64, u64)> = zip(
+        lines.next().unwrap(),
+        lines.next().unwrap(),
+    )
+    .collect();
 
     input
         .iter()
@@ -67,7 +71,6 @@ fn get_winnings_algebraic(time: u64, dist: u64) -> u64 {
     let time_f = time as f64 / 2.;
     let num1 = (time_f - part + BIG_EPSILON + 1.).trunc() as u64;
     let num2 = (time_f + part - BIG_EPSILON).trunc() as u64;
-    
 
     num2 - num1 + 1
 }

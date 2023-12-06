@@ -1,8 +1,11 @@
+install-deps:
+    cargo install cargo-nextest cargo-watch
+
 run DAY:
     cargo run --bin day{{trim_start_match(lowercase(DAY), "day")}}
 
 watch-test DAY:
-    cargo watch -w src/bin/day{{trim_start_match(lowercase(DAY), "day")}}.rs -x "test --bin day{{trim_start_match(lowercase(DAY), "day")}}"
+    cargo watch -w src/bin/day{{trim_start_match(lowercase(DAY), "day")}}.rs -x "nextest run --bin day{{trim_start_match(lowercase(DAY), "day")}}"
 
 hyperfine DAY="all":
     #!/usr/bin/env bash
