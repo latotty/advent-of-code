@@ -6,11 +6,11 @@ use std::fs;
 fn main() {
     let input = fs::read_to_string("./data/day2.task").unwrap();
 
-    let result1 = process1(input.clone());
+    let result1 = process1(&input);
 
     println!("Result1: {result1}");
 
-    let result2 = process2(input);
+    let result2 = process2(&input);
 
     println!("Result2: {result2}");
 }
@@ -19,7 +19,7 @@ lazy_static! {
     static ref GAME_RE: Regex = Regex::new(r"^Game (?P<game_id>[0-9]+): (?P<rounds>.*?)$").unwrap();
 }
 
-fn process1(input: String) -> usize {
+fn process1(input: &str) -> usize {
     const MAX_BALLS: [usize; 3] = [12, 13, 14];
 
     let mut result = 0;
@@ -38,9 +38,9 @@ fn process1(input: String) -> usize {
         let rounds = capture.name("rounds").unwrap().as_str();
 
         let mut max_balls_used = [0, 0, 0];
-        for round in rounds.split(";") {
-            for balls in round.split(",") {
-                let balls_separated: Vec<&str> = balls.trim().split(" ").collect();
+        for round in rounds.split(';') {
+            for balls in round.split(',') {
+                let balls_separated: Vec<&str> = balls.trim().split(' ').collect();
                 if balls_separated.len() < 2 {
                     continue;
                 }
@@ -70,7 +70,7 @@ fn process1(input: String) -> usize {
     result
 }
 
-fn process2(input: String) -> usize {
+fn process2(input: &str) -> usize {
     let mut result = 0;
     for line in input.lines() {
         if !line.starts_with("Game ") {
@@ -81,9 +81,9 @@ fn process2(input: String) -> usize {
         let rounds = capture.name("rounds").unwrap().as_str();
 
         let mut max_balls_used = [0, 0, 0];
-        for round in rounds.split(";") {
-            for balls in round.split(",") {
-                let balls_separated: Vec<&str> = balls.trim().split(" ").collect();
+        for round in rounds.split(';') {
+            for balls in round.split(',') {
+                let balls_separated: Vec<&str> = balls.trim().split(' ').collect();
                 if balls_separated.len() < 2 {
                     continue;
                 }
@@ -107,20 +107,25 @@ fn process2(input: String) -> usize {
     result
 }
 
-#[test]
-fn test_example1() {
-    let input = fs::read_to_string("./data/day2.example1").unwrap();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let result = process1(input);
+    #[test]
+    fn test_example1() {
+        let input = fs::read_to_string("./data/day2.example1").unwrap();
 
-    assert_eq!(result, 8);
-}
+        let result = process1(&input);
 
-#[test]
-fn test_example2() {
-    let input = fs::read_to_string("./data/day2.example1").unwrap();
+        assert_eq!(result, 8);
+    }
 
-    let result = process2(input);
+    #[test]
+    fn test_example2() {
+        let input = fs::read_to_string("./data/day2.example1").unwrap();
 
-    assert_eq!(result, 2286);
+        let result = process2(&input);
+
+        assert_eq!(result, 2286);
+    }
 }

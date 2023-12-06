@@ -1,20 +1,19 @@
-use std::fs;
 use std::collections::VecDeque;
-
+use std::fs;
 
 fn main() {
     let input = fs::read_to_string("./data/day4.task").unwrap();
 
-    let result1 = process1(input.clone());
+    let result1 = process1(&input);
 
     println!("Result1: {result1}");
 
-    let result2 = process2(input);
+    let result2 = process2(&input);
 
     println!("Result2: {result2}");
 }
 
-fn process1(input: String) -> usize {
+fn process1(input: &str) -> usize {
     let mut result = 0;
 
     for line in input.lines() {
@@ -35,7 +34,7 @@ fn process1(input: String) -> usize {
     result
 }
 
-fn process2(input: String) -> usize {
+fn process2(input: &str) -> usize {
     let mut result = 0;
 
     let mut winnings: VecDeque<usize> = VecDeque::from([]);
@@ -62,38 +61,41 @@ fn get_winning_amount(line: &str) -> usize {
         .nth(1)
         .unwrap()
         .split('|')
-        .into_iter()
         .map(|group| {
             group
                 .split(' ')
-                .into_iter()
                 .filter_map(|num_str| num_str.parse::<usize>().ok())
                 .collect::<Vec<usize>>()
         })
         .collect::<Vec<Vec<usize>>>();
-    let winning_nums = number_groups[1]
+
+    number_groups[1]
         .clone()
         .into_iter()
         .filter(|num| number_groups[0].contains(num))
         .collect::<Vec<usize>>()
-        .len();
-    winning_nums
+        .len()
 }
 
-#[test]
-fn test_example1() {
-    let input = fs::read_to_string("./data/day4.example1").unwrap();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let result = process1(input);
+    #[test]
+    fn test_example1() {
+        let input = fs::read_to_string("./data/day4.example1").unwrap();
 
-    assert_eq!(result, 13);
-}
+        let result = process1(&input);
 
-#[test]
-fn test_example2() {
-    let input = fs::read_to_string("./data/day4.example1").unwrap();
+        assert_eq!(result, 13);
+    }
 
-    let result = process2(input);
+    #[test]
+    fn test_example2() {
+        let input = fs::read_to_string("./data/day4.example1").unwrap();
 
-    assert_eq!(result, 30);
+        let result = process2(&input);
+
+        assert_eq!(result, 30);
+    }
 }
