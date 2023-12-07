@@ -1,4 +1,9 @@
-use std::{cmp, fs, ops::Range, str::FromStr};
+use std::{
+    cmp::{self},
+    fs,
+    ops::Range,
+    str::FromStr,
+};
 
 fn main() {
     let input = fs::read_to_string("./data/day5.task").unwrap();
@@ -31,43 +36,149 @@ fn process1(input: &str) -> u64 {
         .expect("should have min")
 }
 
-fn process2(_input: &str) -> u64 {
-    // let data = input.parse::<ParsedInput>().expect("should parse");
+fn process2(input: &str) -> u64 {
+    let data = input.parse::<ParsedInput>().expect("should parse");
 
-    // let base_seed_ranges = data
-    //     .seeds
-    //     .chunks(2)
-    //     .map(|seeds| Range {
-    //         start: seeds[0],
-    //         end: seeds[0] + seeds[1],
-    //     })
-    //     .collect::<Vec<Range<u64>>>();
+    let base_seed_ranges = data
+        .seeds
+        .chunks(2)
+        .map(|seeds| Range {
+            start: seeds[0],
+            end: seeds[0] + seeds[1],
+        })
+        .collect::<Vec<Range<u64>>>();
 
-    // let result_ranges: Vec<Range<u64>> =
-    //     data.maps.into_iter().fold(base_seed_ranges, |acc, map| {
-    //         acc.into_iter()
-    //             .flat_map(|seed_range| {
-    //                 let maps: Vec<(u64, u64, u64)> = map
-    //                     .clone()
-    //                     .into_iter()
-    //                     .filter(|(_, s_s, s_r)| {
-    //                         range_overlapping(
-    //                             &seed_range,
-    //                             &Range {
-    //                                 start: *s_s,
-    //                                 end: s_s + s_r,
-    //                             },
-    //                         )
-    //                     })
-    //                     .collect();
-    //                 dbg!(&seed_range, &maps);
-    //                 [seed_range]
-    //             })
-    //             .collect::<Vec<Range<u64>>>()
-    //     });
+    let result_ranges: Vec<Range<u64>> =
+        data.maps.into_iter().fold(base_seed_ranges, |acc, map| {
+            let next = acc
+                .into_iter()
+                .flat_map(|seed_range| {
+                    let mappers: Vec<(u64, u64, u64)> = map
+                        .clone()
+                        .into_iter()
+                        .filter(|(_, s_s, s_r)| {
+                            range_overlapping(
+                                &seed_range,
+                                &Range {
+                                    start: *s_s,
+                                    end: s_s + s_r,
+                                },
+                            )
+                        })
+                        .collect();
 
-    // dbg!(&result_ranges);
-    0
+                    mappers
+                        .iter()
+                        .fold(
+                            vec![seed_range.clone()],
+                            |acc, (_, start, range)| {
+                                acc.iter()
+                                    .flat_map(|seed_range| {
+                                        split_range_by_range(
+                                            seed_range,
+                                            &Range {
+                                                start: *start,
+                                                end: start + range,
+                                            },
+                                        )
+                                    })
+                                    .collect()
+                            },
+                        )
+                        .iter()
+                        .map(|seed_range| {
+                            if let Some((d_s, s_s, _)) = mappers.iter().find(|(_, s_s, s_r)| {
+                                range_overlapping(
+                                    seed_range,
+                                    &Range {
+                                        start: *s_s,
+                                        end: s_s + s_r,
+                                    },
+                                )
+                            }) {
+                                return Range {
+                                    start: seed_range.start + d_s - s_s,
+                                    end: seed_range.end + d_s - s_s,
+                                };
+                            };
+                            seed_range.clone()
+                        })
+                        .collect::<Vec<Range<u64>>>()
+                })
+                .collect::<Vec<Range<u64>>>();
+
+            // dbg!(&next);
+
+            merge_ranges(next)
+        });
+
+    dbg!(&result_ranges);
+    result_ranges.first().expect("should have first").start
+}
+
+fn split_range_by_range(a: &Range<u64>, b: &Range<u64>) -> Vec<Range<u64>> {
+    match (a.contains(&b.start), a.contains(&b.end)) {
+        (true, true) => vec![
+            Range {
+                start: a.start,
+                end: b.start,
+            },
+            Range {
+                start: b.start,
+                end: b.end,
+            },
+            Range {
+                start: b.end,
+                end: a.end,
+            },
+        ],
+        (true, false) => vec![
+            Range {
+                start: a.start,
+                end: b.start,
+            },
+            Range {
+                start: b.start,
+                end: a.end,
+            },
+        ],
+        (false, true) => vec![
+            Range {
+                start: a.start,
+                end: b.end,
+            },
+            Range {
+                start: b.end,
+                end: a.end,
+            },
+        ],
+        (false, false) => vec![a.clone()],
+    }
+}
+
+fn merge_ranges(mut ranges: Vec<Range<u64>>) -> Vec<Range<u64>> {
+    ranges.sort_by(|a, b| Ord::cmp(&a.start, &b.start));
+
+    let mut result: Vec<Range<u64>> = vec![];
+    let mut prev: Option<Range<u64>> = None;
+    for r in &ranges {
+        if let Some(prev_some) = prev {
+            if range_overlapping(&prev_some, r) || prev_some.end == r.start {
+                let merged = Range {
+                    start: cmp::min(prev_some.start, r.start),
+                    end: cmp::max(prev_some.end, r.end),
+                };
+                prev = Some(merged);
+                continue;
+            }
+            result.push(prev_some);
+        }
+        prev = Some(r.clone());
+    }
+    if let Some(prev) = prev {
+        result.push(prev);
+    }
+    result
 }
 
 fn range_overlapping(r1: &Range<u64>, r2: &Range<u64>) -> bool {
@@ -143,6 +254,50 @@ mod tests {
         assert_eq!(result, expected);
     }
 
+    #[rstest]
+    #[case(0..1, 0..1, true)]
+    #[case(0..10, 2..3, true)]
+    #[case(0..1, 1..2, false)]
+    #[case(0..0, 0..0, false)]
+    fn range_overlapping_test(
+        #[case] a: Range<u64>,
+        #[case] b: Range<u64>,
+        #[case] expected: bool,
+    ) {
+        let result = range_overlapping(&a, &b);
+
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case(vec![], vec![])]
+    #[case(vec![0..1, 1..2], vec![0..2])]
+    #[case(vec![0..1, 2..3], vec![0..1, 2..3])]
+    #[case(vec![0..10, 2..3], vec![0..10])]
+    #[case(vec![0..10, 2..10], vec![0..10])]
+    #[case(vec![0..10, 0..1], vec![0..10])]
+    #[case(vec![2..10, 0..2], vec![0..10])]
+    fn merge_ranges_test(#[case] input: Vec<Range<u64>>, #[case] expected: Vec<Range<u64>>) {
+        let result = merge_ranges(input);
+
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case(0..1, 1..2, vec![0..1])]
+    #[case(0..10, 1..2, vec![0..1, 1..2, 2..10])]
+    #[case(0..10, 8..11, vec![0..8, 8..10])]
+    #[case(1..10, 0..3, vec![1..3, 3..10])]
+    fn split_range_by_range_test(
+        #[case] a: Range<u64>,
+        #[case] b: Range<u64>,
+        #[case] expected: Vec<Range<u64>>,
+    ) {
+        let result = split_range_by_range(&a, &b);
+
+        assert_eq!(result, expected);
+    }
+
     #[test]
     fn test_example1() {
         let input = EXAMPLE_1_STR;
@@ -152,14 +307,12 @@ mod tests {
         assert_eq!(result, 35);
     }
 
-    #[ignore]
     #[test]
     fn test_example2() {
         let input = EXAMPLE_1_STR;
 
         let result = process2(input);
 
-        assert_eq!(result, 46);
         assert_eq!(result, 46);
     }
 
