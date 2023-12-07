@@ -1,5 +1,7 @@
 install-deps:
-    cargo install cargo-nextest cargo-watch
+    curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+    rustup component add rustfmt clippy
+    cargo binstall cargo-nextest cargo-watch
 
 test:
     cargo nextest run
