@@ -1,3 +1,4 @@
+use rand::seq::SliceRandom;
 use std::{
     cmp::{self},
     fs,
@@ -7,25 +8,25 @@ use std::{
 
 fn main() {
     let input = fs::read_to_string("./data/day5.task").unwrap();
+    let data = input.parse::<ParsedInput>().expect("should parse");
 
-    let result1 = process1(&input.clone());
+    let result1 = process1(&data.clone());
 
     println!("Result1: {result1}");
 
-    let result2 = process2(&input);
+    let result2 = process2(&data);
 
     println!("Result2: {result2}");
 }
 
-fn process1(input: &str) -> u64 {
-    let data = input.parse::<ParsedInput>().expect("should parse");
-
+fn process1(data: &ParsedInput) -> u64 {
     data.seeds
-        .into_iter()
+        .iter()
         .map(|seed| {
-            data.maps.clone().into_iter().fold(seed, |last, map| {
+            data.maps.iter().fold(*seed, |last, map| {
+                dbg!(&last);
                 for (d_start, s_start, range) in map {
-                    if last >= s_start && last < s_start + range {
+                    if last >= *s_start && last < s_start + range {
                         return d_start + last - s_start;
                     }
                 }
@@ -34,12 +35,11 @@ fn process1(input: &str) -> u64 {
         })
         .min()
         .expect("should have min")
+        .to_owned()
 }
 
-fn process2(input: &str) -> u64 {
-    let data = input.parse::<ParsedInput>().expect("should parse");
-
-    let base_seed_ranges = data
+fn process2(data: &ParsedInput) -> u64 {
+    let mut base_seed_ranges = data
         .seeds
         .chunks(2)
         .map(|seeds| Range {
@@ -48,76 +48,95 @@ fn process2(input: &str) -> u64 {
         })
         .collect::<Vec<Range<u64>>>();
 
-    let result_ranges: Vec<Range<u64>> =
-        data.maps.into_iter().fold(base_seed_ranges, |acc, map| {
-            let next = acc
-                .into_iter()
-                .flat_map(|seed_range| {
-                    let mappers: Vec<(u64, u64, u64)> = map
-                        .clone()
-                        .into_iter()
-                        .filter(|(_, s_s, s_r)| {
-                            range_overlapping(
-                                &seed_range,
-                                &Range {
-                                    start: *s_s,
-                                    end: s_s + s_r,
-                                },
-                            )
-                        })
-                        .collect();
+    base_seed_ranges = merge_ranges(base_seed_ranges);
 
-                    mappers
-                        .iter()
-                        .fold(
-                            vec![seed_range.clone()],
-                            |acc, (_, start, range)| {
-                                acc.iter()
-                                    .flat_map(|seed_range| {
-                                        split_range_by_range(
-                                            seed_range,
-                                            &Range {
-                                                start: *start,
-                                                end: start + range,
-                                            },
-                                        )
-                                    })
-                                    .collect()
-                            },
-                        )
-                        .iter()
-                        .map(|seed_range| {
-                            if let Some((d_s, s_s, _)) = mappers.iter().find(|(_, s_s, s_r)| {
-                                range_overlapping(
-                                    seed_range,
-                                    &Range {
-                                        start: *s_s,
-                                        end: s_s + s_r,
-                                    },
-                                )
-                            }) {
-                                return Range {
-                                    start: seed_range.start + d_s - s_s,
-                                    end: seed_range.end + d_s - s_s,
-                                };
-                            };
-                            seed_range.clone()
-                        })
-                        .collect::<Vec<Range<u64>>>()
-                })
-                .collect::<Vec<Range<u64>>>();
+    let result_ranges: Vec<Range<u64>> = data.maps.iter().fold(base_seed_ranges, apply_map);
 
-            // dbg!(&next);
-
-            merge_ranges(next)
-        });
-
-    dbg!(&result_ranges);
+    // dbg!(&result_ranges);
     result_ranges.first().expect("should have first").start
 }
 
+fn apply_map(acc: Vec<Range<u64>>, map: &Vec<(u64, u64, u64)>) -> Vec<Range<u64>> {
+    dbg!(&acc);
+    let next = acc
+        .into_iter()
+        .flat_map(|data_range| {
+            // filter out mappers overlapping with data range
+            let mappers: Vec<(u64, u64, u64)> = map
+                .iter()
+                .filter(|(_, s_s, s_r)| {
+                    range_overlapping(
+                        &data_range,
+                        &Range {
+                            start: *s_s,
+                            end: s_s + s_r,
+                        },
+                    )
+                })
+                .cloned()
+                .collect();
+
+            let new_raw_ranges = split_data_range_by_mappers(&data_range, &mappers);
+
+            shift_ranges_by_mappers(&new_raw_ranges, &mappers)
+        })
+        .collect::<Vec<Range<u64>>>();
+
+    // dbg!(&next);
+
+    merge_ranges(next)
+}
+
+fn shift_ranges_by_mappers(
+    data_ranges: &[Range<u64>],
+    mappers: &[(u64, u64, u64)],
+) -> Vec<Range<u64>> {
+    data_ranges
+        .iter()
+        .map(|seed_range| {
+            if let Some((d_s, s_s, _)) = mappers.iter().find(|(_, s_s, s_r)| {
+                range_overlapping(
+                    seed_range,
+                    &Range {
+                        start: *s_s,
+                        end: s_s + s_r,
+                    },
+                )
+            }) {
+                return Range {
+                    start: seed_range.start + d_s - s_s,
+                    end: seed_range.end + d_s - s_s,
+                };
+            };
+            seed_range.clone()
+        })
+        .collect::<Vec<Range<u64>>>()
+}
+
+fn split_data_range_by_mappers(
+    data_range: &Range<u64>,
+    mappers: &[(u64, u64, u64)],
+) -> Vec<Range<u64>> {
+    mappers.iter().fold(
+        vec![data_range.clone()],
+        |acc, (_, start, range)| {
+            acc.iter()
+                .flat_map(|seed_range| {
+                    split_range_by_range(
+                        seed_range,
+                        &Range {
+                            start: *start,
+                            end: start + range,
+                        },
+                    )
+                })
+                .collect()
+        },
+    )
+}
+
 fn split_range_by_range(a: &Range<u64>, b: &Range<u64>) -> Vec<Range<u64>> {
-    match (a.contains(&b.start), a.contains(&b.end)) {
+    let result = match (a.start < b.start && b.start < a.end, a.start < b.end && b.end < a.end) {
         (true, true) => vec![
             Range {
                 start: a.start,
@@ -153,7 +172,13 @@ fn split_range_by_range(a: &Range<u64>, b: &Range<u64>) -> Vec<Range<u64>> {
             },
         ],
         (false, false) => vec![a.clone()],
+    };
+
+    if result.len() > 1 {
+        dbg!(a, b);
     }
+
+    result
 }
 
 fn merge_ranges(mut ranges: Vec<Range<u64>>) -> Vec<Range<u64>> {
@@ -185,7 +210,7 @@ fn range_overlapping(r1: &Range<u64>, r2: &Range<u64>) -> bool {
     cmp::max(r1.start, r2.start) < cmp::min(r1.end, r2.end)
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 struct ParsedInput {
     pub seeds: Vec<u64>,
     pub maps: Vec<Vec<(u64, u64, u64)>>,
@@ -231,6 +256,8 @@ impl FromStr for ParsedInput {
 
 #[cfg(test)]
 mod tests {
+    use std::thread;
+
     use super::*;
 
     use rstest::rstest;
@@ -288,6 +315,7 @@ mod tests {
     #[case(0..10, 1..2, vec![0..1, 1..2, 2..10])]
     #[case(0..10, 8..11, vec![0..8, 8..10])]
     #[case(1..10, 0..3, vec![1..3, 3..10])]
+    #[case(0..1, 0..2, vec![0..1])]
     fn split_range_by_range_test(
         #[case] a: Range<u64>,
         #[case] b: Range<u64>,
@@ -298,11 +326,30 @@ mod tests {
         assert_eq!(result, expected);
     }
 
+    #[rstest]
+    #[case(vec![0..1], vec![(0, 0, 0)], vec![0..1])]
+    #[case(vec![0..1], vec![(1, 0, 1)], vec![1..2])]
+    #[case(vec![0..1], vec![(1, 1, 1)], vec![0..1])]
+    #[case(vec![0..1], vec![(1, 0, 1), (1, 1, 1)], vec![1..2])]
+    #[case(vec![0..1], vec![(1, 0, 1), (1, 1, 1)], vec![1..2])]
+    fn shift_ranges_by_mappers_test(
+        #[case] a: Vec<Range<u64>>,
+        #[case] b: Vec<(u64, u64, u64)>,
+        #[case] expected: Vec<Range<u64>>,
+    ) {
+        let result = shift_ranges_by_mappers(&a, &b);
+
+        assert_eq!(result, expected);
+    }
+
+    // shift_ranges_by_mappers
+    // split_data_range_by_mappers
+
     #[test]
     fn test_example1() {
         let input = EXAMPLE_1_STR;
 
-        let result = process1(input);
+        let result = process1(&input.parse::<ParsedInput>().expect("should parse"));
 
         assert_eq!(result, 35);
     }
@@ -311,9 +358,98 @@ mod tests {
     fn test_example2() {
         let input = EXAMPLE_1_STR;
 
-        let result = process2(input);
+        let result = process2(&input.parse::<ParsedInput>().expect("should parse"));
 
         assert_eq!(result, 46);
+    }
+
+    #[test]
+    fn process1_task_test() {
+        let input_str = fs::read_to_string("./data/day5.task").unwrap();
+        let input = input_str.parse::<ParsedInput>().expect("should parse");
+
+        let result = process1(&input);
+
+        assert_eq!(result, 621354867);
+    }
+
+    #[test]
+    fn process2_task_quick_test() {
+        let input_str = fs::read_to_string("./data/day5.task").unwrap();
+        let input = input_str.parse::<ParsedInput>().expect("should parse");
+
+        let result = process1(&ParsedInput {
+            seeds: input.seeds.iter().flat_map(|s| [s, &1]).cloned().collect(),
+            ..input.clone()
+        });
+
+        assert_eq!(result, 621354867);
+    }
+
+    #[ignore]
+    #[test]
+    fn cross_testing_bruteforce() {
+        let input_str = fs::read_to_string("./data/day5.task").unwrap();
+        let input = input_str.parse::<ParsedInput>().expect("should parse");
+        let mut handles = Vec::new();
+
+        for _ in 0..8 {
+            let input = input.clone();
+            let handle = thread::spawn(move || {
+                for _ in 0..10000000 {
+                    let rnd_num = get_random_from_parsedinput(&input);
+                    cross_runner(rnd_num, &input);
+                }
+            });
+            handles.push(handle);
+        }
+        for handle in handles {
+            handle.join().unwrap();
+        }
+    }
+
+    #[rstest]
+    #[case(3820135796)]
+    fn cross_testing_cases(
+        #[case] num: u64,
+    ) {
+        let input_str = fs::read_to_string("./data/day5.task").unwrap();
+        let input = input_str.parse::<ParsedInput>().expect("should parse");
+
+        cross_runner(num, &input);
+    }
+
+    fn cross_runner(num: u64, input: &ParsedInput) {
+        let result1 = process1(&ParsedInput {
+            seeds: vec![num],
+            ..input.clone()
+        });
+        let result2 = process2(&ParsedInput {
+            seeds: vec![num, 1],
+            ..input.clone()
+        });
+
+        assert_eq!(result1, result2, "invalid result for {}: {} and {}", num, result1, result2);
+    }
+
+    fn get_random_from_parsedinput(input: &ParsedInput) -> u64 {
+        let mut base_seed_ranges = input
+            .seeds
+            .chunks(2)
+            .map(|seeds| Range {
+                start: seeds[0],
+                end: seeds[0] + seeds[1],
+            })
+            .collect::<Vec<Range<u64>>>();
+        base_seed_ranges = merge_ranges(base_seed_ranges);
+
+        let random_range = base_seed_ranges
+            .choose(&mut rand::thread_rng())
+            .unwrap()
+            .clone();
+        
+        random_range.start
+            + (rand::random::<f32>() * (random_range.end - random_range.start) as f32) as u64
     }
 
     const EXAMPLE_1_STR: &str = "seeds: 79 14 55 13
