@@ -28,7 +28,7 @@ fn process1(input: &str) -> u64 {
             return step;
         }
     }
-    panic!("should not react");
+    panic!("should not reach");
 }
 
 fn process2(input: &str) -> u64 {
@@ -59,7 +59,7 @@ fn process2(input: &str) -> u64 {
             return step;
         }
     }
-    panic!("should not react");
+    panic!("should not reach");
 }
 
 fn parse_input(input: &str) -> (Vec<bool>, HashMap<&str, (&str, &str)>) {
