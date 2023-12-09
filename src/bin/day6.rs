@@ -52,7 +52,7 @@ fn process2(input: &str) -> u64 {
     get_winnings_algebraic(time, distance)
 }
 
-fn get_winnings_bruteforce(time: u64, dist: u64) -> u64 {
+pub fn get_winnings_bruteforce(time: u64, dist: u64) -> u64 {
     let mut winnings = 0;
     for push_time in (1..time - 1).rev() {
         let c_distance = push_time * (time - push_time);
@@ -65,7 +65,7 @@ fn get_winnings_bruteforce(time: u64, dist: u64) -> u64 {
     winnings
 }
 
-fn get_winnings_algebraic(time: u64, dist: u64) -> u64 {
+pub fn get_winnings_algebraic(time: u64, dist: u64) -> u64 {
     const BIG_EPSILON: f64 = f64::EPSILON * 10.;
     let part = ((time.pow(2) - 4 * dist) as f64).sqrt() / 2.;
     let time_f = time as f64 / 2.;

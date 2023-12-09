@@ -3,6 +3,10 @@ install-deps:
     rustup component add rustfmt clippy
     cargo binstall cargo-nextest cargo-watch
 
+lint:
+    cargo fmt
+    cargo clippy
+
 test:
     cargo nextest run
 
