@@ -31,35 +31,60 @@ fn process1(input: &str) -> u64 {
     panic!("should not reach");
 }
 
-fn process2(input: &str) -> u64 {
+fn process2(input: &str) -> usize {
     let (instructions, map) = parse_input(input);
 
     let mut nodes = map
         .keys()
         .filter(|key| key.ends_with('A'))
         .cloned()
-        .collect::<Vec<&str>>();
+        .map(Some)
+        .collect::<Vec<Option<&str>>>();
 
-    let node_len = nodes.len();
+    let mut last: Vec<Option<usize>> = vec![None; nodes.len()];
+    let mut freq: Vec<Option<usize>> = vec![None; nodes.len()];
+    for (instr_idx, instruction) in instructions.iter().cycle().enumerate() {
+        for (node_idx, node) in nodes.iter_mut().enumerate() {
+            if let Some(node_val) = node {
+                let (left, right) = map.get(node_val).unwrap();
+                let next = *if *instruction { right } else { left };
+                *node = Some(next);
+                if next.ends_with('Z') {
+                    if let Some(last) = last[node_idx] {
+                        freq[node_idx] = Some(instr_idx - last);
+                        *node = None;
+                    } else {
+                        last[node_idx] = Some(instr_idx);
+                    }
 
-    let mut step = 0;
-
-    for instruction in instructions.iter().cycle() {
-        step += 1;
-
-        let mut end_node_count = 0;
-        for node in nodes.iter_mut() {
-            let (left, right) = map.get(node).unwrap();
-            *node = *if *instruction { right } else { left };
-            if node.ends_with('Z') {
-                end_node_count += 1;
+                    if freq.iter().all(|e| e.is_some()) {
+                        return lcmm(&freq.iter().flatten().cloned().collect::<Vec<usize>>());
+                    }
+                }
             }
-        }
-        if end_node_count == node_len {
-            return step;
         }
     }
     panic!("should not reach");
+}
+
+fn gcd(a: usize, b: usize) -> usize {
+    let mut a = a;
+    let mut b = b;
+    while b > 0 {
+        (a, b) = (b, a % b);
+    }
+    a
+}
+
+fn lcmm(nums: &[usize]) -> usize {
+    let mut iter = nums.iter();
+    let first = *(iter.next().unwrap());
+    nums.iter().fold(first, |acc, num| lcm(acc, *num))
+}
+
+fn lcm(a: usize, b: usize) -> usize {
+    let gcd = gcd(a, b);
+    a * b / gcd
 }
 
 fn parse_input(input: &str) -> (Vec<bool>, HashMap<&str, (&str, &str)>) {
@@ -98,6 +123,7 @@ fn parse_input(input: &str) -> (Vec<bool>, HashMap<&str, (&str, &str)>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
 
     #[test]
     fn test_process1_example1() {
@@ -124,5 +150,33 @@ mod tests {
         let result = process2(&input);
 
         assert_eq!(result, 6);
+    }
+
+    #[rstest]
+    #[case::c1(12, 16, 4)]
+    #[case::c2(19783, 16531, 271)]
+    fn gcd_test(#[case] a: usize, #[case] b: usize, #[case] expected: usize) {
+        let result = gcd(a, b);
+
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case::c1(12, 16, 48)]
+    #[case::c2(19783, 16531, 1206763)]
+    fn lcm_test(#[case] a: usize, #[case] b: usize, #[case] expected: usize) {
+        let result = lcm(a, b);
+
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case::c1(&vec![12, 16], 48)]
+    #[case::c2(&vec![19783, 16531], 1206763)]
+    #[case::c3(&vec![100, 23, 98], 112700)]
+    fn lcmm_test(#[case] a: &[usize], #[case] expected: usize) {
+        let result = lcmm(a);
+
+        assert_eq!(result, expected);
     }
 }
