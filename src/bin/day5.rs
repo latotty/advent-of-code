@@ -1,4 +1,3 @@
-use rand::seq::SliceRandom;
 use std::{
     cmp::{self},
     fs,
@@ -50,13 +49,15 @@ fn process2(data: &ParsedInput) -> u64 {
 
     base_seed_ranges = merge_ranges(base_seed_ranges);
 
-    let result_ranges: Vec<Range<u64>> = data.maps.iter().fold(base_seed_ranges, apply_map);
+    let result_ranges: Vec<Range<u64>> = data.maps.iter().fold(base_seed_ranges, |acc, map| {
+        apply_map(acc, map)
+    });
 
     // dbg!(&result_ranges);
     result_ranges.first().expect("should have first").start
 }
 
-fn apply_map(acc: Vec<Range<u64>>, map: &Vec<(u64, u64, u64)>) -> Vec<Range<u64>> {
+fn apply_map(acc: Vec<Range<u64>>, map: &[(u64, u64, u64)]) -> Vec<Range<u64>> {
     dbg!(&acc);
     let next = acc
         .into_iter()
@@ -136,7 +137,10 @@ fn split_data_range_by_mappers(
 }
 
 fn split_range_by_range(a: &Range<u64>, b: &Range<u64>) -> Vec<Range<u64>> {
-    let result = match (a.start < b.start && b.start < a.end, a.start < b.end && b.end < a.end) {
+    let result = match (
+        a.start < b.start && b.start < a.end,
+        a.start < b.end && b.end < a.end,
+    ) {
         (true, true) => vec![
             Range {
                 start: a.start,
@@ -256,9 +260,9 @@ impl FromStr for ParsedInput {
 
 #[cfg(test)]
 mod tests {
-    use std::thread;
-
     use super::*;
+    use rand::seq::SliceRandom;
+    use std::thread;
 
     use rstest::rstest;
 
@@ -410,9 +414,7 @@ mod tests {
 
     #[rstest]
     #[case(3820135796)]
-    fn cross_testing_cases(
-        #[case] num: u64,
-    ) {
+    fn cross_testing_cases(#[case] num: u64) {
         let input_str = fs::read_to_string("./data/day5.task").unwrap();
         let input = input_str.parse::<ParsedInput>().expect("should parse");
 
@@ -429,7 +431,11 @@ mod tests {
             ..input.clone()
         });
 
-        assert_eq!(result1, result2, "invalid result for {}: {} and {}", num, result1, result2);
+        assert_eq!(
+            result1, result2,
+            "invalid result for {}: {} and {}",
+            num, result1, result2
+        );
     }
 
     fn get_random_from_parsedinput(input: &ParsedInput) -> u64 {
@@ -447,7 +453,7 @@ mod tests {
             .choose(&mut rand::thread_rng())
             .unwrap()
             .clone();
-        
+
         random_range.start
             + (rand::random::<f32>() * (random_range.end - random_range.start) as f32) as u64
     }
