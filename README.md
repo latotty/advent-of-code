@@ -4,14 +4,14 @@
 
 ### Hyperfine
 
-[hyperfine.benchmarks](./hyperfine.benchmarks)
+[hyperfine.md](./hyperfine.md)
 
 To reproduce: 
 Open repo in CodeSpaces https://codespaces.new/latotty/adventofcode2023
 
 Run the following command:
 ```sh
-just hyperfine > hyperfine.benchmarks
+just hyperfine
 ```
 
 Initial run is slow (because of build times).

@@ -34,5 +34,6 @@ hyperfine:
         --min-runs 100 \
         --max-runs 1000 \
         --prepare 'sync' \
+        --export-markdown "hyperfine.md" \
         --shell=none \
         $(ls target/release/day??)
