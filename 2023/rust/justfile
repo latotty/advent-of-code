@@ -25,6 +25,9 @@ flamegraph DAY:
 bench DAY:
     cargo bench --bench {{DAY}}
 
+bench-all:
+    cargo bench --bench 'day*'
+
 hyperfine:
     #!/usr/bin/env bash
     set -euo pipefail
