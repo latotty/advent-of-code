@@ -14,10 +14,16 @@ test:
     cargo nextest run
 
 run DAY:
-    cargo run --bin day{{trim_start_match(lowercase(DAY), 'day')}}
+    cargo run --bin {{DAY}}
 
 watch-test DAY:
-    cargo watch -w src/bin/day{{trim_start_match(lowercase(DAY), 'day')}}.rs -x "nextest run --bin day{{trim_start_match(lowercase(DAY), 'day')}}"
+    cargo watch -w src/bin/{{DAY}}.rs -x "nextest run --bin {{DAY}}"
+
+flamegraph DAY:
+    cargo flamegraph --profile flamegraph --root --bin {{DAY}} -o flamegraphs/{{DAY}}.svg
+
+bench DAY:
+    cargo bench --bench {{DAY}}
 
 hyperfine:
     #!/usr/bin/env bash
