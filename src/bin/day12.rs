@@ -1,4 +1,5 @@
-use std::fs;
+use rayon::prelude::*;
+use std::{collections::HashMap, fs};
 
 fn main() {
     let input = fs::read_to_string("./data/day12.task").unwrap();
@@ -13,7 +14,15 @@ fn main() {
 }
 
 fn process1(input: &str) -> usize {
-    input.lines().map(get_line_combinations).sum()
+    input.lines().par_bridge().map(get_line_combinations).sum()
+}
+
+fn process2(input: &str) -> usize {
+    input
+        .lines()
+        .par_bridge()
+        .map(|line| get_line_combinations(&repeat_input(line, 5)))
+        .sum()
 }
 
 fn get_line_combinations(input: &str) -> usize {
@@ -26,7 +35,13 @@ fn get_line_combinations(input: &str) -> usize {
         .map(|s| str::parse::<usize>(s).unwrap())
         .collect::<Vec<usize>>();
 
-    fn rec(springs: Option<&str>, cgroups: Option<&[usize]>) -> usize {
+    let mut cache = HashMap::new();
+
+    fn rec(
+        cache: &mut HashMap<String, usize>,
+        springs: Option<&str>,
+        cgroups: Option<&[usize]>,
+    ) -> usize {
         let (cgroups, springs) = match (cgroups, springs) {
             (None | Some([]), _) => return 1,
             (Some(cgroups), Some(springs)) if !cgroups.is_empty() && !springs.is_empty() => {
@@ -34,8 +49,12 @@ fn get_line_combinations(input: &str) -> usize {
             }
             _ => return 0,
         };
+        let key = format!("{} {:?}", springs, cgroups);
+        if let Some(res) = cache.get(&key) {
+            return *res;
+        }
         let first_cgroup = *cgroups.first().unwrap();
-        if springs.len() < first_cgroup {
+        if springs.len() < cgroups.iter().sum::<usize>() + cgroups.len() - 1 {
             return 0;
         }
         let found = !springs[0..first_cgroup].contains('.')
@@ -49,32 +68,32 @@ fn get_line_combinations(input: &str) -> usize {
                 Some(rest) => rest.contains('#'),
                 None => false,
             };
-        // dbg!((springs, cgroups, found, rest_is_ok, starts_with_hash));
-        return match (found, rest_is_ok, starts_with_hash) {
+
+        let res = match (found, rest_is_ok, starts_with_hash) {
             (true, true, false) => {
                 rec(
+                    cache,
                     springs.get(first_cgroup + 1..),
                     cgroups.get(1..),
-                ) + rec(springs.get(1..), Some(cgroups))
+                ) + rec(cache, springs.get(1..), Some(cgroups))
             }
             (true, true, true) => rec(
+                cache,
                 springs.get(first_cgroup + 1..),
                 cgroups.get(1..),
             ),
             (_, _, true) => 0,
-            (_, _, false) => rec(springs.get(1..), Some(cgroups)),
+            (_, _, false) => rec(cache, springs.get(1..), Some(cgroups)),
         };
+        cache.insert(key, res);
+        res
     }
-    rec(Some(springs), Some(&cgroups))
-}
 
-fn process2(input: &str) -> usize {
-    // input
-    //     .lines()
-    //     .enumerate()
-    //     .map(|(idx, line)| { dbg!(idx); get_line_combinations(&repeat_input(line, 5)) })
-    //     .sum()
-    0
+    rec(
+        &mut cache,
+        Some(springs),
+        Some(&cgroups),
+    )
 }
 
 fn repeat_input(input: &str, repeat: usize) -> String {
