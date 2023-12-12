@@ -46,17 +46,17 @@ fn get_line_combinations(input: &str) -> usize {
             (None | Some([]), _) => return 1,
             (Some(cgroups), Some(springs)) if !cgroups.is_empty() && !springs.is_empty() => {
                 (cgroups, springs)
-            }
+            },
             _ => return 0,
         };
+        if springs.len() < cgroups.iter().sum::<usize>() + cgroups.len() - 1 {
+            return 0;
+        }
         let key = format!("{} {:?}", springs, cgroups);
         if let Some(res) = cache.get(&key) {
             return *res;
         }
         let first_cgroup = *cgroups.first().unwrap();
-        if springs.len() < cgroups.iter().sum::<usize>() + cgroups.len() - 1 {
-            return 0;
-        }
         let found = !springs[0..first_cgroup].contains('.')
             && !matches!(
                 springs.get(first_cgroup..first_cgroup + 1),
