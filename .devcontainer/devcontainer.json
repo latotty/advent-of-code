@@ -17,8 +17,9 @@
 		"ghcr.io/guiyomh/features/just:0": {},
 		"ghcr.io/lee-orr/rusty-dev-containers/cargo-binstall:0": {
 			"packages": "cargo-nextest,cargo-watch"
-		}
-	},
+		},
+		"ghcr.io/devcontainers-contrib/features/hyperfine:1": {}
+	}
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 	// Use 'postCreateCommand' to run commands after the container is created.
