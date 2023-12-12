@@ -132,8 +132,8 @@ fn sort_hands(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rstest::rstest;
     use indoc::indoc;
+    use rstest::rstest;
 
     const EXAMPLE_1: &str = indoc! {
         "32T3K 765

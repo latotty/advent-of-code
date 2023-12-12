@@ -46,7 +46,7 @@ fn get_line_combinations(input: &str) -> usize {
             (None | Some([]), _) => return 1,
             (Some(cgroups), Some(springs)) if !cgroups.is_empty() && !springs.is_empty() => {
                 (cgroups, springs)
-            },
+            }
             _ => return 0,
         };
         if springs.len() < cgroups.iter().sum::<usize>() + cgroups.len() - 1 {

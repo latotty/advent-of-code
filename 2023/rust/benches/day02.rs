@@ -1,7 +1,6 @@
 use aoc2023::internal::day02::*;
 
 fn main() {
-    // Run registered benchmarks.
     divan::main();
 }
 

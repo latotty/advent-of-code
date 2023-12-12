@@ -61,8 +61,8 @@ fn process_line2(line: &str) -> i64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rstest::rstest;
     use indoc::indoc;
+    use rstest::rstest;
 
     const EXAMPLE_1: &str = indoc! {
         "0 3 6 9 12 15

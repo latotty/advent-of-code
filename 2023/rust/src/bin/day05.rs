@@ -1,5 +1,5 @@
-use std::fs;
 use aoc2023::internal::day05::*;
+use std::fs;
 
 fn main() {
     let input = fs::read_to_string("./data/day5.task").unwrap();

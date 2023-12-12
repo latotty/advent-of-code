@@ -78,8 +78,8 @@ pub fn get_winnings_algebraic(time: u64, dist: u64) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rstest::rstest;
     use indoc::indoc;
+    use rstest::rstest;
 
     const EXAMPLE_1: &str = indoc! {
         "Time:      7  15   30

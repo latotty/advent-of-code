@@ -3,7 +3,6 @@ use std::time::Duration;
 use aoc2023::internal::day06::*;
 
 fn main() {
-    // Run registered benchmarks.
     divan::main();
 }
 
