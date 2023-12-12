@@ -11,7 +11,7 @@ Open repo in CodeSpaces https://codespaces.new/latotty/adventofcode2023
 
 Run the following command:
 ```sh
-just hyperfine all > hyperfine.benchmarks
+just hyperfine > hyperfine.benchmarks
 ```
 
 Initial run is slow (because of build times).
