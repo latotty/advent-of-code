@@ -96,21 +96,31 @@ fn range_overlapping(r1: &Range<usize>, r2: &Range<usize>) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use indoc::indoc;
+
+    const EXAMPLE_1: &str = indoc! {
+        "467..114..
+        ...*......
+        ..35..633.
+        ......#...
+        617*......
+        .....+.58.
+        ..592.....
+        ......755.
+        ...$.*....
+        .664.598.."
+    };
 
     #[test]
     fn test_example1() {
-        let input = fs::read_to_string("./data/day3.example1").unwrap();
-
-        let result = process1(&input);
+        let result = process1(EXAMPLE_1);
 
         assert_eq!(result, 4361);
     }
 
     #[test]
     fn test_example2() {
-        let input = fs::read_to_string("./data/day3.example1").unwrap();
-
-        let result = process2(&input);
+        let result = process2(EXAMPLE_1);
 
         assert_eq!(result, 467835);
     }

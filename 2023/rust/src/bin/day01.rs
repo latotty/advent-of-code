@@ -79,21 +79,34 @@ fn find_digit(line: &str, spelled: bool, rev: bool) -> char {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use indoc::indoc;
+
+    const EXAMPLE_1: &str = indoc! {
+        "1abc2
+        pqr3stu8vwx
+        a1b2c3d4e5f
+        treb7uchet"
+    };
+    const EXAMPLE_2: &str = indoc! {
+        "two1nine
+        eightwothree
+        abcone2threexyz
+        xtwone3four
+        4nineeightseven2
+        zoneight234
+        7pqrstsixteen"
+    };
 
     #[test]
     fn test_example1() {
-        let input = fs::read_to_string("./data/day1.example1").unwrap();
-
-        let result = process1(&input);
+        let result = process1(EXAMPLE_1);
 
         assert_eq!(result, 142);
     }
 
     #[test]
     fn test_example2() {
-        let input = fs::read_to_string("./data/day1.example2").unwrap();
-
-        let result = process2(&input);
+        let result = process2(EXAMPLE_2);
 
         assert_eq!(result, 281);
     }

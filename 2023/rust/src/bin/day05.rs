@@ -23,7 +23,7 @@ fn process1(data: &ParsedInput) -> u64 {
         .iter()
         .map(|seed| {
             data.maps.iter().fold(*seed, |last, map| {
-                dbg!(&last);
+                // dbg!(&last);
                 for (d_start, s_start, range) in map {
                     if last >= *s_start && last < s_start + range {
                         return d_start + last - s_start;
@@ -58,7 +58,7 @@ fn process2(data: &ParsedInput) -> u64 {
 }
 
 fn apply_map(acc: Vec<Range<u64>>, map: &[(u64, u64, u64)]) -> Vec<Range<u64>> {
-    dbg!(&acc);
+    // dbg!(&acc);
     let next = acc
         .into_iter()
         .flat_map(|data_range| {
@@ -178,10 +178,6 @@ fn split_range_by_range(a: &Range<u64>, b: &Range<u64>) -> Vec<Range<u64>> {
         (false, false) => vec![a.clone()],
     };
 
-    if result.len() > 1 {
-        dbg!(a, b);
-    }
-
     result
 }
 
@@ -261,13 +257,49 @@ impl FromStr for ParsedInput {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use indoc::indoc;
     use rand::seq::SliceRandom;
+    use rstest::rstest;
     use std::thread;
 
-    use rstest::rstest;
+    const EXAMPLE_1: &str = indoc! {
+        "seeds: 79 14 55 13
+
+        seed-to-soil map:
+        50 98 2
+        52 50 48
+        
+        soil-to-fertilizer map:
+        0 15 37
+        37 52 2
+        39 0 15
+        
+        fertilizer-to-water map:
+        49 53 8
+        0 11 42
+        42 0 7
+        57 7 4
+        
+        water-to-light map:
+        88 18 7
+        18 25 70
+        
+        light-to-temperature map:
+        45 77 23
+        81 45 19
+        68 64 13
+        
+        temperature-to-humidity map:
+        0 69 1
+        1 0 69
+        
+        humidity-to-location map:
+        60 56 37
+        56 93 4"
+    };
 
     #[rstest]
-    #[case(EXAMPLE_1_STR, ParsedInput {
+    #[case(EXAMPLE_1, ParsedInput {
         seeds: vec![79, 14, 55, 13],
         maps: vec![
             vec![(50, 98, 2), (52, 50, 48)],
@@ -351,18 +383,14 @@ mod tests {
 
     #[test]
     fn test_example1() {
-        let input = EXAMPLE_1_STR;
-
-        let result = process1(&input.parse::<ParsedInput>().expect("should parse"));
+        let result = process1(&EXAMPLE_1.parse::<ParsedInput>().expect("should parse"));
 
         assert_eq!(result, 35);
     }
 
     #[test]
     fn test_example2() {
-        let input = EXAMPLE_1_STR;
-
-        let result = process2(&input.parse::<ParsedInput>().expect("should parse"));
+        let result = process2(&EXAMPLE_1.parse::<ParsedInput>().expect("should parse"));
 
         assert_eq!(result, 46);
     }
@@ -457,38 +485,4 @@ mod tests {
         random_range.start
             + (rand::random::<f32>() * (random_range.end - random_range.start) as f32) as u64
     }
-
-    const EXAMPLE_1_STR: &str = "seeds: 79 14 55 13
-
-seed-to-soil map:
-50 98 2
-52 50 48
-
-soil-to-fertilizer map:
-0 15 37
-37 52 2
-39 0 15
-
-fertilizer-to-water map:
-49 53 8
-0 11 42
-42 0 7
-57 7 4
-
-water-to-light map:
-88 18 7
-18 25 70
-
-light-to-temperature map:
-45 77 23
-81 45 19
-68 64 13
-
-temperature-to-humidity map:
-0 69 1
-1 0 69
-
-humidity-to-location map:
-60 56 37
-56 93 4";
 }

@@ -124,30 +124,58 @@ fn parse_input(input: &str) -> (Vec<bool>, HashMap<&str, (&str, &str)>) {
 mod tests {
     use super::*;
     use rstest::rstest;
+    use indoc::indoc;
+
+    const EXAMPLE_1: &str = indoc! {
+        "RL
+
+        AAA = (BBB, CCC)
+        BBB = (DDD, EEE)
+        CCC = (ZZZ, GGG)
+        DDD = (DDD, DDD)
+        EEE = (EEE, EEE)
+        GGG = (GGG, GGG)
+        ZZZ = (ZZZ, ZZZ)"
+    };
+
+    const EXAMPLE_2: &str = indoc! {
+        "LLR
+
+        AAA = (BBB, BBB)
+        BBB = (AAA, ZZZ)
+        ZZZ = (ZZZ, ZZZ)"
+    };
+
+    const EXAMPLE_3: &str = indoc! {
+        "LR
+
+        11A = (11B, XXX)
+        11B = (XXX, 11Z)
+        11Z = (11B, XXX)
+        22A = (22B, XXX)
+        22B = (22C, 22C)
+        22C = (22Z, 22Z)
+        22Z = (22B, 22B)
+        XXX = (XXX, XXX)"
+    };
 
     #[test]
     fn test_process1_example1() {
-        let input = fs::read_to_string("./data/day8.example1").unwrap();
-
-        let result = process1(&input);
+        let result = process1(EXAMPLE_1);
 
         assert_eq!(result, 2);
     }
 
     #[test]
     fn test_process1_example2() {
-        let input = fs::read_to_string("./data/day8.example2").unwrap();
-
-        let result = process1(&input);
+        let result = process1(EXAMPLE_2);
 
         assert_eq!(result, 6);
     }
 
     #[test]
     fn test_process2_example3() {
-        let input = fs::read_to_string("./data/day8.example3").unwrap();
-
-        let result = process2(&input);
+        let result = process2(EXAMPLE_3);
 
         assert_eq!(result, 6);
     }

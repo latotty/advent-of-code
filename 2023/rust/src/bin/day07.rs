@@ -133,6 +133,15 @@ fn sort_hands(
 mod tests {
     use super::*;
     use rstest::rstest;
+    use indoc::indoc;
+
+    const EXAMPLE_1: &str = indoc! {
+        "32T3K 765
+        T55J5 684
+        KK677 28
+        KTJJT 220
+        QQQJA 483"
+    };
 
     #[rstest]
     #[case::n32t3k("32T3K", false, 1)]
@@ -171,9 +180,7 @@ mod tests {
 
     #[test]
     fn test_example1() {
-        let input = fs::read_to_string("./data/day7.example1").unwrap();
-
-        let result = process1(&input);
+        let result = process1(EXAMPLE_1);
 
         assert_eq!(result, 6440);
     }
@@ -189,9 +196,7 @@ mod tests {
 
     #[test]
     fn test_example2() {
-        let input = fs::read_to_string("./data/day7.example1").unwrap();
-
-        let result = process2(&input);
+        let result = process2(EXAMPLE_1);
 
         assert_eq!(result, 5905);
     }

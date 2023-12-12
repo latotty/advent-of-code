@@ -78,8 +78,13 @@ pub fn get_winnings_algebraic(time: u64, dist: u64) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     use rstest::rstest;
+    use indoc::indoc;
+
+    const EXAMPLE_1: &str = indoc! {
+        "Time:      7  15   30
+        Distance:  9  40  200"
+    };
 
     #[rstest]
     #[case(7, 9, 4)]
@@ -103,18 +108,14 @@ mod tests {
 
     #[test]
     fn test_example1() {
-        let input = fs::read_to_string("./data/day6.example1").unwrap();
-
-        let result = process1(&input);
+        let result = process1(EXAMPLE_1);
 
         assert_eq!(result, 288);
     }
 
     #[test]
     fn test_example2() {
-        let input = fs::read_to_string("./data/day6.example1").unwrap();
-
-        let result = process2(&input);
+        let result = process2(EXAMPLE_1);
 
         assert_eq!(result, 71503);
     }
