@@ -24,7 +24,6 @@ fn get_block_mirror_num(input: &str) -> u64 {
     let width = input.lines().next().unwrap().len();
     let height = input.lines().count();
 
-    // change 1..width-1 to start from middle
     let x_mirror = (1..width).find(|x| {
         input.lines().all(|line| {
             let left = &line[0..*x];
@@ -64,7 +63,6 @@ fn get_block_mirror_smudge_num(input: &str) -> u64 {
     let width = input.lines().next().unwrap().len();
     let height = input.lines().count();
 
-    // change 1..width-1 to start from middle
     let x_mirror = (1..width).find(|x| {
         matches!(
             input.lines().try_fold(0, |smudges, line| {
