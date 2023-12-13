@@ -1,4 +1,4 @@
-use std::str::Chars;
+use super::col_iter::ColIter;
 
 pub fn process1(input: &str) -> usize {
     let (xempty, yempty) = get_empty_space(input);
@@ -53,7 +53,7 @@ fn get_empty_space(input: &str) -> (Vec<usize>, Vec<usize>) {
         .filter_map(|(idx, line)| if line.contains('#') { None } else { Some(idx) })
         .collect::<Vec<usize>>();
 
-    let xempty = InputColIter::new(input)
+    let xempty = ColIter::new(input)
         .enumerate()
         .filter_map(|(idx, chars)| {
             if chars.contains(&'#') {
@@ -65,34 +65,6 @@ fn get_empty_space(input: &str) -> (Vec<usize>, Vec<usize>) {
         .collect::<Vec<usize>>();
 
     (xempty, yempty)
-}
-
-struct InputColIter<'a> {
-    lines: Vec<Chars<'a>>,
-}
-
-impl<'a> InputColIter<'a> {
-    fn new(input: &'a str) -> Self {
-        Self {
-            lines: input.lines().map(|l| l.chars()).collect(),
-        }
-    }
-}
-
-impl<'a> Iterator for InputColIter<'a> {
-    type Item = Vec<char>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let mut res: Vec<char> = Vec::new();
-        for line in &mut self.lines {
-            if let Some(char) = line.next() {
-                res.push(char);
-            } else {
-                return None;
-            }
-        }
-        Some(res)
-    }
 }
 
 pub fn process2(input: &str) -> usize {
