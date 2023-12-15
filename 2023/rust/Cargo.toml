@@ -9,6 +9,7 @@ edition = "2021"
 divan = "0.1.5"
 indoc = "2.0.4"
 lazy_static = "1.4.0"
+nohash = "0.2.0"
 rand = "0.8.5"
 rayon = "1.8.0"
 regex = "1.10.2"
@@ -72,4 +73,8 @@ harness = false
 
 [[bench]]
 name = "day14"
+harness = false
+
+[[bench]]
+name = "day15"
 harness = false
