@@ -27,5 +27,5 @@ Open repo in CodeSpaces https://codespaces.new/latotty/advent-of-code
 Run the following command:
 ```sh
 cd 2023/rust/
-just bench-all > divan.txt
+just divan
 ```

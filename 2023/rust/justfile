@@ -28,6 +28,9 @@ bench DAY:
 bench-all:
     cargo bench --bench 'day*'
 
+divan:
+    just bench-all > divan.txt
+
 hyperfine:
     #!/usr/bin/env bash
     set -euo pipefail
