@@ -3,7 +3,7 @@ use std::hash::{Hash, Hasher};
 
 use crate::internal::col_iter::ColIter;
 
-pub fn process2_param_opt(input: &str, iter_count: usize) -> usize {
+pub fn process2_param_opt_multi_cache(input: &str, iter_count: usize) -> usize {
     let (width, height, rocks) = parse_input(input);
 
     let rows = parse_rows(input);
@@ -45,6 +45,37 @@ pub fn process2_param_opt(input: &str, iter_count: usize) -> usize {
         );
 
         cache.insert(hash, (1, last_rocks.clone()));
+        idx += 1;
+    }
+
+    get_rocks_load(last_rocks, height)
+}
+
+pub fn process2_param_opt_shortcut(input: &str, iter_count: usize) -> usize {
+    let (width, height, rocks) = parse_input(input);
+
+    let rows = parse_rows(input);
+    let cols = parse_cols(input);
+    let mut last_rocks: Vec<(u8, u8)> = rocks;
+    let mut new_rocks: Vec<(u8, u8)> = vec![];
+    let mut cache = HashMap::<u64, usize>::new();
+
+    let mut idx = 0;
+    while idx < iter_count {
+        let hash = get_hash(&last_rocks);
+        if let Some(last_seen) = cache.insert(hash, idx) {
+            let cycle_length = idx - last_seen;
+            for _ in 0..((iter_count - idx) % cycle_length) {
+                FullTiltResult(last_rocks, new_rocks) = full_tilt(
+                    width, height, &rows, &cols, last_rocks, new_rocks,
+                );
+            }
+            break;
+        }
+
+        FullTiltResult(last_rocks, new_rocks) = full_tilt(
+            width, height, &rows, &cols, last_rocks, new_rocks,
+        );
         idx += 1;
     }
 
@@ -254,41 +285,3 @@ mod tests {
         #OO..#...."
     };
 }
-
-/*
-PRE UNIFIED TILT:
-├─ process2_param_opt_ex                             │               │               │               │         │
-│  ├─ it_10                            15.45 µs      │ 43.66 µs      │ 15.62 µs      │ 16.34 µs      │ 100     │ 100
-│  ├─ it_100                           20.04 µs      │ 24.2 µs       │ 20.6 µs       │ 20.75 µs      │ 100     │ 100
-│  ├─ it_1000                          27.41 µs      │ 48.2 µs       │ 28.24 µs      │ 29.08 µs      │ 100     │ 100
-│  ├─ it_10000                         37.12 µs      │ 57.16 µs      │ 38.56 µs      │ 39.5 µs       │ 100     │ 100
-│  ├─ it_100000                        51.95 µs      │ 66.33 µs      │ 53.95 µs      │ 55.15 µs      │ 100     │ 100
-│  ├─ it_1000000                       46.79 µs      │ 73.16 µs      │ 49.68 µs      │ 50.58 µs      │ 100     │ 100
-│  ├─ it_10000000                      69.29 µs      │ 119.9 µs      │ 72.81 µs      │ 74.16 µs      │ 100     │ 100
-│  ├─ it_100000000                     100.2 µs      │ 146.8 µs      │ 105 µs        │ 106.3 µs      │ 100     │ 100
-│  ╰─ it_1000000000                    86.95 µs      │ 112.5 µs      │ 89.24 µs      │ 90.2 µs       │ 100     │ 100
-
-POST UNIFIED TILT
-├─ process2_param_opt_ex                             │               │               │               │         │
-│  ├─ it_10                            16.54 µs      │ 38.33 µs      │ 16.95 µs      │ 17.88 µs      │ 100     │ 100
-│  ├─ it_100                           21.41 µs      │ 23.37 µs      │ 21.95 µs      │ 22.04 µs      │ 100     │ 100
-│  ├─ it_1000                          29.04 µs      │ 67.66 µs      │ 30.1 µs       │ 31.07 µs      │ 100     │ 100
-│  ├─ it_10000                         39.58 µs      │ 49.41 µs      │ 42.22 µs      │ 42.16 µs      │ 100     │ 100
-│  ├─ it_100000                        55.04 µs      │ 83.37 µs      │ 58.83 µs      │ 59.91 µs      │ 100     │ 100
-│  ├─ it_1000000                       50.04 µs      │ 68.91 µs      │ 52.54 µs      │ 53.15 µs      │ 100     │ 100
-│  ├─ it_10000000                      72.49 µs      │ 95.79 µs      │ 76.97 µs      │ 77.97 µs      │ 100     │ 100
-│  ├─ it_100000000                     105.4 µs      │ 136.6 µs      │ 112.5 µs      │ 113.2 µs      │ 100     │ 100
-│  ╰─ it_1000000000                    90.66 µs      │ 146.4 µs      │ 95.64 µs      │ 97.45 µs      │ 100     │ 100
-
-no iter count
-├─ process2_param_opt_ex                             │               │               │               │         │
-│  ├─ it_10                            12.99 µs      │ 25.16 µs      │ 13.16 µs      │ 13.5 µs       │ 100     │ 100
-│  ├─ it_100                           17.37 µs      │ 22.41 µs      │ 17.54 µs      │ 17.74 µs      │ 100     │ 100
-│  ├─ it_1000                          23.58 µs      │ 27.58 µs      │ 23.79 µs      │ 23.93 µs      │ 100     │ 100
-│  ├─ it_10000                         32.41 µs      │ 52.79 µs      │ 32.7 µs       │ 33.4 µs       │ 100     │ 100
-│  ├─ it_100000                        47.12 µs      │ 53.08 µs      │ 47.74 µs      │ 48.53 µs      │ 100     │ 100
-│  ├─ it_1000000                       41.45 µs      │ 63.04 µs      │ 42.77 µs      │ 43.05 µs      │ 100     │ 100
-│  ├─ it_10000000                      63.24 µs      │ 78.83 µs      │ 65.41 µs      │ 65.95 µs      │ 100     │ 100
-│  ├─ it_100000000                     92.79 µs      │ 119.3 µs      │ 96.91 µs      │ 97.87 µs      │ 100     │ 100
-│  ╰─ it_1000000000                    80.04 µs      │ 100.7 µs      │ 83.06 µs      │ 83.74 µs      │ 100     │ 100
-*/

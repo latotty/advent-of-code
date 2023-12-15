@@ -1,7 +1,7 @@
-use super::opt::process2_param_opt;
+use super::opt::process2_param_opt_shortcut;
 
 pub fn process2(input: &str) -> usize {
-    process2_param_opt(input, 1_000_000_000)
+    process2_param_opt_shortcut(input, 1_000_000_000)
 }
 
 #[cfg(test)]

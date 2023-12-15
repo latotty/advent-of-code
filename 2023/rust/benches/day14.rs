@@ -135,8 +135,14 @@ part2_ex_bench!(
     1b
 );
 part2_ex_bench!(
-    process2_param_opt_ex,
-    aoc2023::internal::day14::opt::process2_param_opt,
+    process2_param_opt_multi_cache_ex,
+    aoc2023::internal::day14::opt::process2_param_opt_multi_cache,
+    EXAMPLE_1,
+    1b
+);
+part2_ex_bench!(
+    process2_param_opt_shortcut_ex,
+    aoc2023::internal::day14::opt::process2_param_opt_shortcut,
     EXAMPLE_1,
     1b
 );
@@ -162,19 +168,19 @@ mod process2_param_str_cached_multi_custom {
 
     part2_bench_part!(
         it_1b_reddit_the_real_seber,
-        aoc2023::internal::day14::opt::process2_param_opt,
+        aoc2023::internal::day14::str_cached_multi::process2_param_str_cached_multi,
         REDDIT_THE_REAL_SEBER,
         1_000_000_000,
         94585
     );
 }
 
-mod process2_param_opt_custom {
+mod process2_param_multi_cache_custom {
     use super::*;
 
     part2_bench_part!(
         it_1b_c_2520,
-        aoc2023::internal::day14::opt::process2_param_opt,
+        aoc2023::internal::day14::opt::process2_param_opt_multi_cache,
         CYCLE_2520,
         1_000_000_000,
         165
@@ -182,7 +188,7 @@ mod process2_param_opt_custom {
 
     part2_bench_part!(
         it_1k_c_13082761331670030,
-        aoc2023::internal::day14::opt::process2_param_opt,
+        aoc2023::internal::day14::opt::process2_param_opt_multi_cache,
         CYCLE_13082761331670030,
         1_000,
         610
@@ -190,14 +196,42 @@ mod process2_param_opt_custom {
 
     part2_bench_part!(
         it_1b_reddit_the_real_seber,
-        aoc2023::internal::day14::opt::process2_param_opt,
+        aoc2023::internal::day14::opt::process2_param_opt_multi_cache,
         REDDIT_THE_REAL_SEBER,
         1_000_000_000,
         94585
     );
 }
 
-mod process2_the_real_saber_custom {
+mod process2_param_opt_shortcut_custom {
+    use super::*;
+
+    part2_bench_part!(
+        it_1b_c_2520,
+        aoc2023::internal::day14::opt::process2_param_opt_shortcut,
+        CYCLE_2520,
+        1_000_000_000,
+        165
+    );
+
+    part2_bench_part!(
+        it_1k_c_13082761331670030,
+        aoc2023::internal::day14::opt::process2_param_opt_shortcut,
+        CYCLE_13082761331670030,
+        1_000,
+        610
+    );
+
+    part2_bench_part!(
+        it_1b_reddit_the_real_seber,
+        aoc2023::internal::day14::opt::process2_param_opt_shortcut,
+        REDDIT_THE_REAL_SEBER,
+        1_000_000_000,
+        94585
+    );
+}
+
+mod process2_the_real_seber_custom {
     use super::*;
 
     #[divan::bench(
