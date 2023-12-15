@@ -20,16 +20,15 @@ fn part2() {
     assert_eq!(result1, 104409);
 }
 
-
 #[divan::bench(
     max_time = std::time::Duration::from_millis(500)
 )]
 fn part1_str_simple() {
     let input = include_str!("../data/day14.task");
-    let result1 = aoc2023::internal::day14::str_simple::process1_str_simple(divan::black_box(input));
+    let result1 =
+        aoc2023::internal::day14::str_simple::process1_str_simple(divan::black_box(input));
     assert_eq!(result1, 113486);
 }
-
 
 macro_rules! part2_bench_part {
     (
@@ -40,8 +39,8 @@ macro_rules! part2_bench_part {
         $result:expr
     ) => {
         #[divan::bench(
-                            max_time = std::time::Duration::from_millis(500)
-                        )]
+                                    max_time = std::time::Duration::from_millis(500)
+                                )]
         fn $name() {
             let result1 = $fn(divan::black_box($input), $iter_count);
             assert_eq!(result1, $result);
@@ -247,7 +246,9 @@ mod process2_the_real_seber_custom {
         max_time = std::time::Duration::from_millis(500)
     )]
     fn it_1b_reddit_the_real_seber() {
-        let result1 = aoc2023::internal::day14::the_real_seber::process(divan::black_box(REDDIT_THE_REAL_SEBER));
+        let result1 = aoc2023::internal::day14::the_real_seber::process(divan::black_box(
+            REDDIT_THE_REAL_SEBER,
+        ));
         assert_eq!(result1, "94585");
     }
 }

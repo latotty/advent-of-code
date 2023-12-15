@@ -4,7 +4,8 @@ pub fn process1(input: &str) -> u32 {
     input.split(',').map(hash).sum()
 }
 
-type Boxes<'a> = HashMap<u8, Vec<(&'a str, u8)>, std::hash::BuildHasherDefault<nohash::NoHashHasher<u8>>>;
+type Boxes<'a> =
+    HashMap<u8, Vec<(&'a str, u8)>, std::hash::BuildHasherDefault<nohash::NoHashHasher<u8>>>;
 
 pub fn process2(input: &str) -> u64 {
     let mut boxes: Boxes = HashMap::with_capacity_and_hasher(

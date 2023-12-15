@@ -21,7 +21,11 @@ mod tests {
 
     #[rstest]
     #[case::c1(EXAMPLE_1, 100_000, 65)]
-    fn process2_param_str_cached_test(#[case] input: &str, #[case] iter_count: usize, #[case] expected: usize) {
+    fn process2_param_str_cached_test(
+        #[case] input: &str,
+        #[case] iter_count: usize,
+        #[case] expected: usize,
+    ) {
         let result = process2_param_str_cached(input, iter_count);
 
         assert_eq!(result, expected);

@@ -36,7 +36,10 @@ fn rotate(input: &mut Vec<Vec<Character>>) {
     for i in 0..vec_size / 2 {
         for j in i..vec_size - i - 1 {
             unsafe {
-                swap(&mut input[i][j], &mut input[vec_size - j - 1][i]);
+                swap(
+                    &mut input[i][j],
+                    &mut input[vec_size - j - 1][i],
+                );
                 swap(
                     &mut input[vec_size - j - 1][i],
                     &mut input[vec_size - i - 1][vec_size - j - 1],
@@ -57,7 +60,12 @@ fn move_rocks(input: &mut Vec<Vec<Character>>) {
             match input[y][x] {
                 Character::CubedRock => last_free_place = y + 1,
                 Character::RoundedRock => {
-                    unsafe { swap(&mut input[last_free_place][x], &mut input[y][x]) }
+                    unsafe {
+                        swap(
+                            &mut input[last_free_place][x],
+                            &mut input[y][x],
+                        )
+                    }
                     last_free_place += 1;
                 }
                 _ => {}
