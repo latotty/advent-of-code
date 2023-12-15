@@ -1,4 +1,4 @@
-use aoc2023::internal::day14::*;
+use aoc2023::internal::day14::{task1::process1, task2::process2};
 use std::fs;
 
 fn main() {

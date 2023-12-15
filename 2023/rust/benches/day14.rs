@@ -1,5 +1,3 @@
-use aoc2023::internal::day14::*;
-
 fn main() {
     divan::main();
 }
@@ -9,7 +7,7 @@ fn main() {
 )]
 fn part1() {
     let input = include_str!("../data/day14.task");
-    let result1 = process1(input);
+    let result1 = aoc2023::internal::day14::task1::process1(divan::black_box(input));
     assert_eq!(result1, 113486);
 }
 
@@ -18,13 +16,25 @@ fn part1() {
 )]
 fn part2() {
     let input = include_str!("../data/day14.task");
-    let result1 = process2(input);
+    let result1 = aoc2023::internal::day14::task2::process2(divan::black_box(input));
     assert_eq!(result1, 104409);
 }
+
+
+#[divan::bench(
+    max_time = std::time::Duration::from_millis(500)
+)]
+fn part1_str_simple() {
+    let input = include_str!("../data/day14.task");
+    let result1 = aoc2023::internal::day14::str_simple::process1_str_simple(divan::black_box(input));
+    assert_eq!(result1, 113486);
+}
+
+
 macro_rules! part2_bench_part {
     (
         $name:ident,
-        $fn:ident,
+        $fn:expr,
         $input:expr,
         $iter_count:expr,
         $result:expr
@@ -33,7 +43,7 @@ macro_rules! part2_bench_part {
                             max_time = std::time::Duration::from_millis(500)
                         )]
         fn $name() {
-            let result1 = $fn($input, $iter_count);
+            let result1 = $fn(divan::black_box($input), $iter_count);
             assert_eq!(result1, $result);
         }
     };
@@ -42,7 +52,7 @@ macro_rules! part2_bench_part {
 macro_rules! part2_ex_bench {
     (
         $name:ident,
-        $fn:ident,
+        $fn:expr,
         $input:expr,
         10k
     ) => {
@@ -57,7 +67,7 @@ macro_rules! part2_ex_bench {
     };
     (
         $name:ident,
-        $fn:ident,
+        $fn:expr,
         $input:expr,
         1m
     ) => {
@@ -74,7 +84,7 @@ macro_rules! part2_ex_bench {
     };
     (
         $name:ident,
-        $fn:ident,
+        $fn:expr,
         $input:expr,
         1b
     ) => {
@@ -108,29 +118,35 @@ macro_rules! part2_ex_bench {
 
 part2_ex_bench!(
     process2_param_simple_ex,
-    process2_param_simple,
+    aoc2023::internal::day14::str_simple::process2_param_str_simple,
     EXAMPLE_1,
     10k
 );
 part2_ex_bench!(
     process2_param_cached_ex,
-    process2_param_cached,
+    aoc2023::internal::day14::str_cached::process2_param_str_cached,
     EXAMPLE_1,
     1m
 );
 part2_ex_bench!(
     process2_param_cached_multi_ex,
-    process2_param_cached_multi,
+    aoc2023::internal::day14::str_cached_multi::process2_param_str_cached_multi,
+    EXAMPLE_1,
+    1b
+);
+part2_ex_bench!(
+    process2_param_opt_ex,
+    aoc2023::internal::day14::opt::process2_param_opt,
     EXAMPLE_1,
     1b
 );
 
-mod process2_param_cached_multi_custom {
+mod process2_param_str_cached_multi_custom {
     use super::*;
 
     part2_bench_part!(
         it_1b_c_2520,
-        process2_param_cached_multi,
+        aoc2023::internal::day14::str_cached_multi::process2_param_str_cached_multi,
         CYCLE_2520,
         1_000_000_000,
         165
@@ -138,11 +154,68 @@ mod process2_param_cached_multi_custom {
 
     part2_bench_part!(
         it_1k_c_13082761331670030,
-        process2_param_cached_multi,
+        aoc2023::internal::day14::str_cached_multi::process2_param_str_cached_multi,
         CYCLE_13082761331670030,
         1_000,
         610
     );
+
+    part2_bench_part!(
+        it_1b_reddit_the_real_seber,
+        aoc2023::internal::day14::opt::process2_param_opt,
+        REDDIT_THE_REAL_SEBER,
+        1_000_000_000,
+        94585
+    );
+}
+
+mod process2_param_opt_custom {
+    use super::*;
+
+    part2_bench_part!(
+        it_1b_c_2520,
+        aoc2023::internal::day14::opt::process2_param_opt,
+        CYCLE_2520,
+        1_000_000_000,
+        165
+    );
+
+    part2_bench_part!(
+        it_1k_c_13082761331670030,
+        aoc2023::internal::day14::opt::process2_param_opt,
+        CYCLE_13082761331670030,
+        1_000,
+        610
+    );
+
+    part2_bench_part!(
+        it_1b_reddit_the_real_seber,
+        aoc2023::internal::day14::opt::process2_param_opt,
+        REDDIT_THE_REAL_SEBER,
+        1_000_000_000,
+        94585
+    );
+}
+
+mod process2_the_real_saber_custom {
+    use super::*;
+
+    #[divan::bench(
+        max_time = std::time::Duration::from_millis(500)
+    )]
+    fn task() {
+        let input = include_str!("../data/day14.task");
+        let result1 = aoc2023::internal::day14::the_real_seber::process(divan::black_box(input));
+        assert_eq!(result1, "104409");
+    }
+
+    #[divan::bench(
+        max_time = std::time::Duration::from_millis(500)
+    )]
+    fn it_1b_reddit_the_real_seber() {
+        let result1 = aoc2023::internal::day14::the_real_seber::process(divan::black_box(REDDIT_THE_REAL_SEBER));
+        assert_eq!(result1, "94585");
+    }
 }
 
 pub const EXAMPLE_1: &str = indoc::indoc! {
@@ -327,4 +400,108 @@ pub const CYCLE_13082761331670030: &str = indoc::indoc! {
     ......................................................#...#.........................................
     .......................................................#............................................
     ........................................................O#.........................................."
+};
+
+// FROM https://www.reddit.com/r/adventofcode/comments/18i0xtn/comment/kdb8xw7/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+pub const REDDIT_THE_REAL_SEBER: &str = indoc::indoc! {
+    ".O....O.OOO..O.#.#.###.#O....OO..OO.O...O...O###..#.#....#.#....##..O.O.O##.......O.#.O.......##O#O.
+    ..#.#.#......O........O#OOOO#.O.#.#.#..O.#O...#..O...#..O.O#......#O...##O...O.#...O.O...##O.O.O...#
+    .......O.OO..O.##.#..O.#...O#.#.......O.O.##.......#.O..#.......O.....#...O...#.#OO......#....#.....
+    ....#.....O#.O..O..#..#OO.#OO....#.......O..O.O...#.....#.O.....O..O.O....#..#O..O.#.O....O.......#O
+    .........O.O....O.#O..#..........#O#......###.#..OO...#.O#O.O.O#....##...O.O..#.O..OO.#.OO...O#.OOO.
+    .#O..#.O....#O...O#.........O#O..#O..#O.O.OO..O..#...#O...O..OOOO.....O..O.........O..#O##......O##.
+    ..O#.O.....#.O..O.#.O......O#O.#..#.O.O..#..O.O#..O..#O.....##.#....#..OO.#.........OO....#...O....O
+    .O.O#..O.###....O#....O...#....O.O....O.O.O......O.O###OO.#.O...O..O..O.....O.#.O#..OO..O#.OO#OO.#OO
+    OO...#O#......#####OOO.O###...........O#....#.#.O.O.##...O#.O...........OO.#...#......O.O....#..O..#
+    .O..OO....#.#.##O.O#..OO....#...O..O...O.O###.##O.......#O.....##.O..O##.....O...OO.#....#.#.O.....#
+    OOO#O.....O.O....O.O#....O.OOO........#..#.O..#...O...OO#.O...OO#..O..O.#..##.......#......O....O.O.
+    ......O..OOO..OOO..##OO...O...#.#.#..O..#..#OOO...O.O.O#......O#.....#..O#O...#.OO.....#.O.#.OOO..#.
+    O...........OOOO.OO#O....#........O...#.##......#.OO..O.OO.#.O.....OO#.#..#.OOO.#.#..#..O.....OO..#.
+    ....O..O.O.#....OO.#.#O..#....#..O#..........O..O.O#......#....###.O.#..#.#......O......O....#.#O..O
+    ....#O....#..OO..O#O.#.OO##O..O##..O..O.......##......OO..OOO#..O..OO....O.#..O##..#......#.O.....OO
+    .O.#.O..##O#...##....##.#.O..#O#O.......#...O..........O.O.......O.....O..#.....#....#.O.#.#...O...O
+    ....###....#.....#O.#O###O#.O....#O#O.##.OO#.O#O..#..O..#..#.O##.............O....#O...#.....O...O##
+    .O...##....O..#..#..O#.......O....O...O.O..#O...#.......#.......O.O..O#.O##..O.O......#...#......O..
+    ......O##..OOOO#.........O......O.#O.....#OO..#.O..OO......#.O...##.##...O#.........#.....#.........
+    .#.....OO....OO..O.#OO#..#.#.##.O....O..OO.O.........O..O.O....##...#.O#.O..#........O#.O##.#...#.OO
+    .O.#....O.O#......OO..#OOO.O........##.O.....#O......#.....OO..O#..O...O..O#O...........#.#O...#O...
+    ....O#O...#...#..#.##O...OO.#.#.O..#....O....#.O....##.........O.O.#...#...#....O...#...##.#..#...O.
+    ..#O##...O.OO.#.#....O...#...#....O...O....#.#.O.O.OO..O.OO.......#.O#....O##.O#.O..O##O........OO#.
+    .#...##.#.O...O..........O.O##..##.O###..##...O..#.O.....O##O...O.....O.......O..#..#.O#.#....#O#...
+    O..#O#.O......#..##.O...O.##O.#...O....O.O.#....O........OO..#.O...O....###.O.O#.#O...O.#O.....#.O..
+    #.O...O.O......O.O.O....O..#O...O..OO.OOO...#.O.OO....#......#.#.O.O#..O..O...#O#.......O.OO.##..O..
+    ..OO..#O#.O#..##....#..OOO...#O..O.O.#.#.OOO#.#...#.OO#O......#.#..#......OO..O..#..#..##..O#....O#.
+    .OO#...O#O.#.#..O..#......O...O......O#.#.##O...#.#..#..#.###..O.###.#....O...O..#...#O......O....O.
+    O....#O..##...O...O..O#O#.....#O.....#..#.#....#...##..#.....#.#......###O....#OO#.##O..O.O....O....
+    ....O.###.....O...O.O...O...O#OO..#.#.....O.OO.....#O...##O#OOO.#..O...OO#O.O....O....O..#..O....#..
+    ...O..#O..O...O......##OO..O..O.....O....O..O##O.#OO..#O..O.#......#.O..#O.......O....O#...O.O.....O
+    ...O#O..#..O.O......O.....#..................#O..##.#....O..O....O#...##.O...#.O.#........#O#..#..OO
+    O....O.#.......#O#....O...O.#O...OO.O..OOO..#...#.OOOO.O..#..#....O.........#.#..O..#..#.#.O..OO.O..
+    #O..O......O...O#......O#..#...O.#O.#.O...#.#.#.O....#O.#..O#...OO...#O#..O...#O.#.##O.O..O#O#.#O.O#
+    #.##...O..O.O...##...O..#OO...OO........O....OO..OO.......O##.OO..#..#............#.O.......#.O.OO#.
+    O#..#.OO..##....#O..OO..#...#..#..###.#O...O#..#.....O.O.#OO.........O..O...#....#.#O....#.O.....O..
+    ..OO.O......O.OO.OO.....O..#OO...##.O.O.O.#.#O#..#...O...O...#...O...O...#.........#....#.#.O#......
+    O..#.....##O.#O....OOO.........O..#...#......##.#O.......O.OO....OO..OO..#.#...O#O..##........#O..O.
+    ##.O...#..#.O##.O......O...#....#.O..#...OO....O.OOO...#O#.#OO....##.#O......##......O..OO.......#..
+    ....O........#.O#...........O..#..#OO.OOO#.OO##...#.OO............##O...O.O.O#.....#..#.O.#.#.O...O.
+    O.#....O....#...O#O..#O.O..#..#O...#.O..O.O.....OO....OO##....O.O#.......#...O.....#OO.#....O.OOO...
+    O...#..#...#..OO...##.....#OO#O....#.#.OO.......O..O..O..#..#......O..OO...O.OO.O..OO#..###O#O.....#
+    ........OO#.O..#.....###....O........O....O.O..O#.OOO....#OO##.O#OO.......#.O......O.O......O...O.O.
+    ...#.#...#O..#...O.#.OO.O........O#....#O..O..O.O#.O...#..#.OO.OOOO.#...#...O...#O..#..OOO..O...O#.O
+    O.OO#O#.#.#O..O#OOO..O..#.##..#.##OO#.#..#O.O#O.O...OO...O..O.......O.......##........#.##.......#..
+    OO.O.##.#.#...#...OO##.....#.O...#....O#.#.O..O..#...#....#O...OO....#.O...##O....#O.O..O#O...OO#.#O
+    .#...#....#....O#.O..#...OO##...O.#.#......#.O###.O.#OO....#......OO.......O#..#O#.OO..O.O......#O#.
+    ..O#..O..O....#.#..#OOO....##O..#...O...##..##..##.O.O#...O......#........OOOO..O#.....O.#.#O.....#.
+    .#..#.O.........#..........OO.#...#.#..O...##OOO.......O..O###..#...#.......#.OO#..O..#....#OO......
+    .O..#.##.O..#..O....#.O......O#.......#..O.OO..O...#....##..O.#O.#..#.##O#.O..OO#O.#..O...#.#.O.O#.O
+    ##....OO..##.OO....OO#.O#.O.#..#...O..#.#.O...O.O......O#...#.##.O........OO.....#O...##.#..OO.....O
+    ..#.OOO......O.....O.#..O..O##..O..#.#...OO..#..O....O..#.#O........#.#.O...#.O....#...O...O......O.
+    ..O#..#.#.#.O...O#..O.O..O.O#O...O..O..#O...#..O.O....#....O#...#O..##.#O..O.##O.O.#..O.O.....OO...O
+    ..#.....OO....O.O..#....OO..O...#.#..OO..#O..#...O..O..#.##.OO.O.O.O.O.....#..#...#O.##..O...O.#.#..
+    ....O...O....OO.......O.O.....O....OO...###..O##.......#...#O.#.O....O..#.O...#.OO#..O#.#..#...##...
+    ...#O....OOO.OO..#.#.O.O.O.#..O..O#...O.#O..........#..#OO...#.O..#O...OOO..#...#....#...O.OO#O....O
+    O...O....O.O...#...##O...O....OO#O.O##.##..O..#...OO.......#....OOO.O.#.#....O...OOOO.#.....#....#O.
+    .....OOO....O..O.#..O#O#......OO...........#......O.OO.OO.#..O..#.O#.OOOOO.O..##OO...O..#.O..O.O.O.O
+    #..#.O..OO....#.###O...O....#O#O#OO...O.O#.....OO.O..O.O......O.OOO#.........O.#..O..O.O.O#.O.O..OO.
+    #O.O..#....#O.#..O#OO....O........#.....O...##...OOOO.O............O.....OO.O....##O..##.#......O...
+    O#.#..#.O.....#O....#.#..O.O.......O..O...#OO....#...OO.#....O.O.O.....O...#O.#O.O.O#....O#.........
+    ..O.O......O..#.O..O..O#OO........O..#.O.#.....O#O#O#.#O#..##O....OO.#..O.O#..OO.....OO.OO......##O#
+    .OOOO.##.#.#......O..O...O##O##.O.OOO#.O.O.OO....O.......O.#....O..##......#...O..#..##O#OO..##...O.
+    ......#O.##....#...O.#.#.O##..O.#.......##.OO#O#.##..O.....#.#.#O.....#O.O#O......O....#.#....O#.OOO
+    ..#......#..O#.......O#.#OOO...#...O#............O.O.#.#O..##...#O#O....#.....##O#.O.OO...O...O#.OO.
+    .#.O.#.#.OOO..#.#.O#...#..#...O...O...O#.OO...OO.O#..O.#...OO#.#..O....#.O#.O#..O#.##.O.O..O.O#.O.O.
+    O.O#.OO#O.OO#O.....O.O.O.O...#OO....#.#...O.O.OO.O#.#.O.OO..#.O.O...#.....#....OOO....#.O.O.OO#...O.
+    O#O......O......O..#......O.....#O#O..O......#...O....O#O##.....O#....#...#.#.....OO#.O.O.O#OO..#.#O
+    O#.....#.O#O.#.....O.OOOO........#.#O......OO.O.O.....O....#O.##.O.....OO....O#..O......O......#..OO
+    ..#..#..OO..#.#...#O...###...O...#.#....O...O.#..O...O.O.#......#......#O.O...#OO.#O...#.O....O...O#
+    OOO.O.OO..#.O.#O.OO.........#..........#.O#......O..#O.#..#O......#..#.O#.......O..............O..O.
+    .OO.O.....OO...O.O..##....O.......OO..#O##..O..#.#.O#.#.O.....#..#.O.......O.##.O..#.OO.OO..........
+    .........##O.#.#......#...O...##OO.OO....OO...#.OOO#.....O..#...#O.O..##.O#.O...........O#.O#.#O.O..
+    ..O#..#O#..........OO.O......#...O.....O.O#..O#.#..........OO...#.#...O##....OO.#O.....##O...O.#....
+    .###.O.#O.#....O.#.#O#..O..........O..#.##O.#...O.O#..#..#O.O.##...#O....O.#..O.O..#.O..#O#.#......O
+    OO.......#.O...##..#.#..#OO...O...............OO#.....#.O...#.........#..O...O....O.....##..O.......
+    .#..O..##.OO..O#...O.....OOO.#..O#.OO...##.O.OO.O...OO.O.O#O.....O#...........#..OOO.OO##.O#..#OO.O.
+    .O.....O..#...O..O......O.O...O.....O........O...#.#O...O#O.O...###.O..O.O...#O...O.O.OO.O.O...O#OO.
+    .............#...#O..O#O.O.O....O................#....O....#O.O..........OO#.##..#.O##.........#....
+    #O##O#OOO.#..O..O....O..O.##..OOO..O.O...............O..O.O#O.###......O...O......OOO.##.#...OO..O.#
+    O...OO#O.O#.OO..OO........#.O....O...#........O...#..O...##O...O#...........#.O.#...O#...O#..#OO..O.
+    .##O.#...O...O....#O#...#O.O#.O##...#....O#..#..#OO....#......#..O#..O.O..O...O..........O...#..O...
+    .....O...#...........O..O..##.....O.OO.....#O..OO..#..O.....#......O...##O##.#.#...O.OO.OO##.#.#..#.
+    #..O...#.##O#.#OO..##O....O...#.O.#O#..O...OO..O....O#O#.#....O...........O......##O.....#...#...##O
+    O..........OO..O.#..O.#...O.#.#.#......#.O..O#......O....O.O.O.O.##.O#..##....O#O#....O........#.O.O
+    OO...##.....O..O.#O...O..OO.#.O.O.#.O.........O...O.O.O.O.#.#O...O..#.O.....#....#..#...O#..#..O...#
+    O##...#OO#.##.OO.O..#..OO.......OO.OO#.OO..O.......O.......OOO.#...#O#O.#..O......O..O.....#...##.#.
+    #..O..#.OO.#.O.O.O.#.O##...#.O.O....###......O#OO.......OO..OO....#...O...#.........OO....O.......O.
+    ...#.#.##.....#...........O.OO.....O.OO..O.O..#..#....#..#O..O#....O#OO##.#.....O.....#.......O#O.O.
+    .#..O.#...##...O.O.#...O.....#O.#O..#.OOO...........##.....#.#O#.##....OO#.O.....O.....OO.O.O.OO....
+    #O#..OO..O#..O..O...OO.OO.#.....OO.......#.....O.O.O#..OOO......O.#..#O...O..O..O.#....O.O..OO#OO#..
+    O.###O.O...O.....O..#.O..O...O..OO##.O..##..O..O...##O.#....#.O.O....O.O.........#OO#O....O.....O..O
+    ........#.O...O...#.#.#OO.O.#.O.....O#...O....O..#....#..O..#..........OO..#.O....OO.O..O...OOO...O#
+    .#.#...........O.O.......#.#O..O....#O..O...O.O..O..#.#.....O.....O.#...OO.O....#O..O.O#.O.....#....
+    .O.#...##.#.OO..#O...#....#.#.......#...#O....#.....O...O#.#.OO.#.O#.....OO....#.OO..#..O.O.OO....O.
+    .OO#OO#.##.##OO..O.....O..O#OO.O.#....#....#.OO##..#..#.........#..............OO...O.....O.......#.
+    ..O.....#..#.......O..#O...#...#.O.........###.#...O.O.#....O................O.#O#O#..O..#.#...#..#O
+    ..#O...O.......OO#.#..#O.....OO.OO..O..##....#.O#...#.O..O.OO.....#..O...OO.O.O....#O..O.#..#......O
+    .O.......O.....O..O...#.....O..O##..#......O.#...O#O.#.O.O.O.OO.O.#......OO.OOO.O#.OOO#O...#..#.O...
+    ...O.O#.OOO##.O#O...O##.O....O..O.##.#OO..O#.O.O...OOO#..O...##......#O........O..O.O....O........OO"
 };

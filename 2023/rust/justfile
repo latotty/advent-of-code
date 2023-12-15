@@ -17,7 +17,7 @@ run DAY:
     cargo run --bin {{DAY}}
 
 watch-test DAY:
-    cargo watch -w src/internal/{{DAY}}.rs -x "nextest run --lib -E 'test({{DAY}})'"
+    cargo watch -w src/internal/{{DAY}}* -x "nextest run --lib -E 'test({{DAY}})'"
 
 flamegraph DAY:
     cargo flamegraph --profile flamegraph --root --bin {{DAY}} -o flamegraphs/{{DAY}}.svg
