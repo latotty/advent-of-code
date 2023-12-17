@@ -38,9 +38,7 @@ macro_rules! part2_bench_part {
         $iter_count:expr,
         $result:expr
     ) => {
-        #[divan::bench(
-                                    max_time = std::time::Duration::from_millis(500)
-                                )]
+        #[divan::bench(max_time = std::time::Duration::from_millis(500))]
         fn $name() {
             let result1 = $fn(divan::black_box($input), $iter_count);
             assert_eq!(result1, $result);

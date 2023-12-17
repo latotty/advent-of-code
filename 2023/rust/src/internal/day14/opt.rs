@@ -249,13 +249,27 @@ mod tests {
     #[rstest]
     #[case::c1(EXAMPLE_1, 1, 87)]
     #[case::c100k(EXAMPLE_1, 100_000, 65)]
-    // #[case::c1b(EXAMPLE_1, 1_000_000_000, 64)]
-    fn process2_param_opt_test(
+    #[case::c1b(EXAMPLE_1, 1_000_000_000, 64)]
+    fn process2_param_opt_multi_cache_test(
         #[case] input: &str,
         #[case] iter_count: usize,
         #[case] expected: usize,
     ) {
-        let result = process2_param_opt(input, iter_count);
+        let result = process2_param_opt_multi_cache(input, iter_count);
+
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case::c1(EXAMPLE_1, 1, 87)]
+    #[case::c100k(EXAMPLE_1, 100_000, 65)]
+    #[case::c1b(EXAMPLE_1, 1_000_000_000, 64)]
+    fn process2_param_opt_shortcut_test(
+        #[case] input: &str,
+        #[case] iter_count: usize,
+        #[case] expected: usize,
+    ) {
+        let result = process2_param_opt_shortcut(input, iter_count);
 
         assert_eq!(result, expected);
     }
