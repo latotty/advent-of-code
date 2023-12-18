@@ -16,6 +16,9 @@ test:
 run DAY:
     cargo run --bin {{DAY}}
 
+run-release DAY:
+    cargo run --release --bin {{DAY}}
+
 watch-test DAY:
     cargo watch -w src/internal/{{DAY}}* -x "nextest run --lib -E 'test({{DAY}})'"
 
