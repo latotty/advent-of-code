@@ -1,8 +1,8 @@
-use rayon::iter::{ParallelBridge, ParallelIterator, IntoParallelRefIterator};
+use rayon::iter::{IntoParallelRefIterator, ParallelBridge, ParallelIterator};
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::HashMap,
     ops::Range,
-    sync::{Arc, atomic::AtomicU64},
+    sync::{atomic::AtomicU64, Arc},
 };
 
 pub fn process1(input: &str) -> u32 {
@@ -77,7 +77,10 @@ pub fn process2(input: &str) -> u64 {
     );
     let result: AtomicU64 = AtomicU64::new(0);
 
-    let mut queue: Vec<(RuleTarget, HashMap<PropertyName, Range<u32>>)> = vec![(
+    let mut queue: Vec<(
+        RuleTarget,
+        HashMap<PropertyName, Range<u32>>,
+    )> = vec![(
         RuleTarget::Next("in".to_string()),
         HashMap::from([
             (PropertyName::X, 1..4001),
@@ -88,36 +91,49 @@ pub fn process2(input: &str) -> u64 {
     )];
 
     while !queue.is_empty() {
-        let next_queue: Vec<(RuleTarget, HashMap<PropertyName, Range<u32>>)> = queue.par_iter().map_with(rules_map.clone(), |rules_map, (name, properties)| {
-            let name = match name {
-                RuleTarget::Next(name) => name,
-                RuleTarget::Allow => {
-                    result.fetch_add(calculate_properties_value(properties), std::sync::atomic::Ordering::Relaxed);
-                    return vec![];
+        let next_queue: Vec<(
+            RuleTarget,
+            HashMap<PropertyName, Range<u32>>,
+        )> = queue
+            .par_iter()
+            .map_with(
+                rules_map.clone(),
+                |rules_map, (name, properties)| {
+                    let name = match name {
+                        RuleTarget::Next(name) => name,
+                        RuleTarget::Allow => {
+                            result.fetch_add(
+                                calculate_properties_value(properties),
+                                std::sync::atomic::Ordering::Relaxed,
+                            );
+                            return vec![];
+                        }
+                        RuleTarget::Reject => {
+                            return vec![];
+                        }
+                    };
+                    if let Some(rules) = rules_map.get(name.as_str()) {
+                        let mut result = Vec::new();
+                        let mut properties = properties.clone();
+                        for rule in rules {
+                            let splitted = rule.split(&properties);
+
+                            if let Some(prop_ranges) = splitted.1 {
+                                result.push((splitted.0.clone(), prop_ranges));
+                            }
+
+                            if let Some(prop_ranges) = splitted.2 {
+                                properties = prop_ranges;
+                            }
+                        }
+                        result
+                    } else {
+                        panic!("invalid target {name}");
+                    }
                 },
-                RuleTarget::Reject => {
-                    return vec![];
-                }
-            };
-            if let Some(rules) = rules_map.get(name.as_str()) {
-                let mut result = Vec::new();
-                let mut properties = properties.clone();
-                for rule in rules {
-                    let splitted = rule.split(&properties);
-    
-                    if let Some(prop_ranges) = splitted.1 {
-                        result.push((splitted.0.clone(), prop_ranges));
-                    }
-    
-                    if let Some(prop_ranges) = splitted.2 {
-                        properties = prop_ranges;
-                    }
-                }
-                result
-            } else {
-                panic!("invalid target {name}");
-            }
-        }).flatten().collect();
+            )
+            .flatten()
+            .collect();
         queue = next_queue;
     }
 
@@ -126,7 +142,7 @@ pub fn process2(input: &str) -> u64 {
 
 fn calculate_properties_value(properties: &HashMap<PropertyName, Range<u32>>) -> u64 {
     let mut result = 1;
-    for (_, range) in properties {
+    for range in properties.values() {
         result *= range.len() as u64;
     }
     result
@@ -201,7 +217,7 @@ impl Rule {
         }
     }
 
-    fn split<'a>(&'a self, props: & HashMap<PropertyName, Range<u32>>) -> RuleSplitResponse<'a> {
+    fn split<'a>(&'a self, props: &HashMap<PropertyName, Range<u32>>) -> RuleSplitResponse<'a> {
         match self {
             Rule::Gt(prop, target) => {
                 let prop_range = props.get(&prop.name).expect("should contain prop");
@@ -216,7 +232,7 @@ impl Rule {
                                     (
                                         *k,
                                         Range {
-                                            start: prop.value+1,
+                                            start: prop.value + 1,
                                             end: v.end,
                                         },
                                     )
@@ -233,7 +249,7 @@ impl Rule {
                                         *k,
                                         Range {
                                             start: v.start,
-                                            end: prop.value+1,
+                                            end: prop.value + 1,
                                         },
                                     )
                                 } else {
@@ -314,7 +330,6 @@ impl Rule {
                 Some(props.iter().map(|(k, v)| (*k, v.clone())).collect()),
                 None,
             ),
-            _ => panic!("invalid rule"),
         }
     }
 }

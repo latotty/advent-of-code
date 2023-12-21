@@ -88,7 +88,7 @@ pub fn process1(input: &str) -> u16 {
     calculate_1(input, 64)
 }
 
-pub fn process2(input: &str) -> u64 {
+pub fn process2(_input: &str) -> u64 {
     0
 }
 
@@ -96,15 +96,17 @@ fn calculate_1(input: &str, exact_steps: u16) -> u16 {
     let flood_map = get_flood_map(input);
     // println!("{}", flood_map_to_string(&flood_map, input.lines().next().unwrap().len()));
 
-    flood_map.iter().filter(|v| {
-        if let Some(v) = v {
-            let v = (exact_steps as i16) - *v as i16;
-            return v >= 0 && v % 2 == 0;
-        }
-        false
-    }).count() as u16
+    flood_map
+        .iter()
+        .filter(|v| {
+            if let Some(v) = v {
+                let v = (exact_steps as i16) - *v as i16;
+                return v >= 0 && v % 2 == 0;
+            }
+            false
+        })
+        .count() as u16
 }
-
 
 fn _flood_map_to_string(flood_map: &[Option<u16>], width: usize) -> String {
     flood_map
@@ -256,7 +258,14 @@ mod tests {
         212"
     })]
     fn get_flood_map_test(#[case] input: &str, #[case] expected: &str) {
-        let expected = expected.lines().flat_map(|l| l.chars().map(|c| c.to_digit(10).map(|n| n as u16)).collect::<Vec<_>>()).collect::<Vec<_>>();
+        let expected = expected
+            .lines()
+            .flat_map(|l| {
+                l.chars()
+                    .map(|c| c.to_digit(10).map(|n| n as u16))
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
         let result = get_flood_map(input);
 
         assert_eq!(result, expected);
@@ -267,12 +276,11 @@ mod tests {
     #[case::example_2(EXAMPLE_1, 2, 4)]
     #[case::example_3(EXAMPLE_1, 3, 6)]
     #[case::example_6(EXAMPLE_1, 6, 16)]
-    fn calculate_1_test(#[case] input: &str,  #[case] steps: u16, #[case] expected: u16) {
+    fn calculate_1_test(#[case] input: &str, #[case] steps: u16, #[case] expected: u16) {
         let result = calculate_1(input, steps);
 
         assert_eq!(result, expected);
     }
-
 
     // #[rstest]
     // #[case::c1(EXAMPLE_1, 16)]

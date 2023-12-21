@@ -1,14 +1,21 @@
-use std::{cmp, collections::VecDeque, ops::Range, sync::{Arc, atomic::{AtomicUsize, AtomicIsize}}};
+use std::{
+    cmp,
+    collections::VecDeque,
+    ops::Range,
+    sync::{atomic::AtomicIsize, Arc},
+};
 
-use rayon::{slice::ParallelSliceMut, iter::ParallelIterator};
+use rayon::{iter::ParallelIterator, slice::ParallelSliceMut};
 
 pub fn process1(input: &str) -> usize {
     // process1_graph::<true>(input)
     process1_str(input)
 }
 
+type Node = (isize, isize, bool);
+
 pub fn process1_graph_par<const DRAW: bool>(input: &str) -> usize {
-    let graph: Arc<Vec<(isize, isize, bool)>> = Arc::from(build_graph(input));
+    let mut graph: Arc<Vec<Node>> = Arc::from(build_graph(input));
 
     if DRAW {
         println!(
@@ -20,27 +27,32 @@ pub fn process1_graph_par<const DRAW: bool>(input: &str) -> usize {
     let in_right = graph[0].2;
     let area = AtomicIsize::new(0);
 
-    let mut graph: Arc<Vec<(isize, isize, bool)>> = Arc::from(graph);
-    let mut next_graph: Vec<(isize, isize, bool)> = (*graph).clone();
+    let mut next_graph: Vec<Node> = (*graph).clone();
     loop {
-        next_graph.par_chunks_mut(4).for_each_with(graph.clone(), |graph, chunk| {
-            if chunk.len() < 4 {
-                return;
-            }
-            if let Some((mut nodes, area_calc)) = reduce_graph_chunk::<DRAW>(
-                chunk,
-                graph,
-                in_right,
-            ) {
-                area.fetch_add(area_calc, std::sync::atomic::Ordering::AcqRel);
-                nodes.resize_with(4, || (isize::MIN, isize::MAX, false));
-                chunk.swap_with_slice(&mut nodes);
-            }
-        });
+        next_graph
+            .par_chunks_mut(4)
+            .for_each_with(graph.clone(), |graph, chunk| {
+                if chunk.len() < 4 {
+                    return;
+                }
+                if let Some((mut nodes, area_calc)) =
+                    reduce_graph_chunk::<DRAW>(chunk, graph, in_right)
+                {
+                    area.fetch_add(
+                        area_calc,
+                        std::sync::atomic::Ordering::AcqRel,
+                    );
+                    nodes.resize_with(4, || (isize::MIN, isize::MAX, false));
+                    chunk.swap_with_slice(&mut nodes);
+                }
+            });
         next_graph.retain(|e| e != &(isize::MIN, isize::MAX, false));
         next_graph.rotate_right(1);
 
-        (next_graph, graph) = (next_graph.clone(), Arc::from(next_graph));
+        (next_graph, graph) = (
+            next_graph.clone(),
+            Arc::from(next_graph),
+        );
 
         dbg!(next_graph.len());
 
@@ -100,10 +112,10 @@ pub fn process1_graph<const DRAW: bool>(input: &str) -> usize {
 }
 
 fn reduce_graph_chunk<const DRAW: bool>(
-    nodes: &[(isize, isize, bool)],
-    graph: &[(isize, isize, bool)],
+    nodes: &[Node],
+    graph: &[Node],
     in_right: bool,
-) -> Option<(Vec<(isize, isize, bool)>, isize)> {
+) -> Option<(Vec<Node>, isize)> {
     let (vertical, x_range, y_range, orientation) = get_graph_working_area(nodes);
     if (/* invalid vertical */vertical
         && nodes[1].0 < cmp::max(nodes[0].0, nodes[3].0)
@@ -135,7 +147,7 @@ fn reduce_graph_chunk<const DRAW: bool>(
         // );
         println!(
             "Current: ({area})\n{}\n",
-            draw_graph::<false>(&nodes)
+            draw_graph::<false>(nodes)
         );
     }
     if (vertical && nodes[0].0 == nodes[3].0) || (!vertical && nodes[0].1 == nodes[3].1) {
@@ -207,9 +219,7 @@ fn reduce_graph_chunk<const DRAW: bool>(
     None
 }
 
-fn get_graph_working_area(
-    nodes: &[(isize, isize, bool)],
-) -> (bool, Range<isize>, Range<isize>, bool) {
+fn get_graph_working_area(nodes: &[Node]) -> (bool, Range<isize>, Range<isize>, bool) {
     if nodes[1].0 == nodes[2].0 {
         // vertical
         let width = cmp::min(
@@ -286,7 +296,7 @@ pub fn process2(_input: &str) -> u64 {
     0
 }
 
-fn build_graph(input: &str) -> Vec<(isize, isize, bool)> {
+fn build_graph(input: &str) -> Vec<Node> {
     let lines_count = input.lines().count();
     let (mut x, mut y, mut last_cmd, mut last_right) = (0, 0, None, None);
     let mut res = vec![];
@@ -339,7 +349,7 @@ fn build_graph(input: &str) -> Vec<(isize, isize, bool)> {
     res
 }
 
-fn draw_graph<const LAST: bool>(graph: &[(isize, isize, bool)]) -> String {
+fn draw_graph<const LAST: bool>(graph: &[Node]) -> String {
     let size_data = get_graph_size(graph);
     let mut result = (0..size_data.height)
         .map(|_| ".".repeat(size_data.width))
@@ -395,7 +405,7 @@ fn draw_graph<const LAST: bool>(graph: &[(isize, isize, bool)]) -> String {
     result
 }
 
-fn get_graph_size(graph: &[(isize, isize, bool)]) -> InputSizeData {
+fn get_graph_size(graph: &[Node]) -> InputSizeData {
     let minx = graph.iter().min_by_key(|(x, _, _)| x).unwrap().0;
     let maxx = graph.iter().max_by_key(|(x, _, _)| x).unwrap().0;
     let miny = graph.iter().min_by_key(|(_, y, _)| y).unwrap().1;

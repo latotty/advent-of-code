@@ -7,7 +7,6 @@ pub fn process1(input: &str) -> u32 {
 
     // println!("\n{}", &flood_map.chunks(input.lines().next().unwrap().len()).map(|flood_line| flood_line.iter().map(|fc| format!("{0:^4}", if fc.is_none() { 0 } else { fc.unwrap().0 })).collect::<Vec<String>>().join(" ")).collect::<Vec<String>>().join("\n"));
 
-
     flood_map.last().unwrap().unwrap().0
 }
 
