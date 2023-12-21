@@ -16,6 +16,9 @@ rayon = "1.8.0"
 regex = "1.10.2"
 rstest = "0.18.2"
 
+[features]
+expensive_tests = []
+
 [profile.flamegraph]
 inherits = "release"
 debug = true
@@ -82,4 +85,8 @@ harness = false
 
 [[bench]]
 name = "day18"
+harness = false
+
+[[bench]]
+name = "day19"
 harness = false
