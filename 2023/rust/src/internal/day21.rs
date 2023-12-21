@@ -85,17 +85,24 @@ use std::sync::{atomic::AtomicU16, Arc};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 pub fn process1(input: &str) -> u16 {
-    calculate_1(input, 64)
+    process1_par(input)
 }
 
 pub fn process2(_input: &str) -> u64 {
     0
 }
 
-fn calculate_1(input: &str, exact_steps: u16) -> u16 {
-    let flood_map = get_flood_map(input);
-    // println!("{}", flood_map_to_string(&flood_map, input.lines().next().unwrap().len()));
+pub fn process1_simple(input: &str) -> u16 {
+    let flood_map: Vec<Option<u16>> = get_flood_map_simple(input);
+    calculate_1(&flood_map, 64)
+}
 
+pub fn process1_par(input: &str) -> u16 {
+    let flood_map: Vec<Option<u16>> = get_flood_map_par(input);
+    calculate_1(&flood_map, 64)
+}
+
+fn calculate_1(flood_map: &[Option<u16>], exact_steps: u16) -> u16 {
     flood_map
         .iter()
         .filter(|v| {
@@ -125,7 +132,49 @@ fn _flood_map_to_string(flood_map: &[Option<u16>], width: usize) -> String {
         .join("\n")
 }
 
-fn get_flood_map(input: &str) -> Vec<Option<u16>> {
+fn get_flood_map_simple(input: &str) -> Vec<Option<u16>> {
+    let width = input.lines().next().unwrap().len();
+    let height = input.lines().count();
+
+    let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+
+    let mut output = Vec::<u16>::new();
+    output.resize_with(width * height, || u16::MAX);
+    let input = input.chars().filter(|c| c != &'\n').collect::<Vec<_>>();
+
+    let start_idx = input.iter().position(|c| c == &'S').unwrap();
+    output[start_idx] = 0;
+    let mut queue = vec![(start_idx, 0)];
+    while let Some((idx, step)) = queue.pop() {
+        let x = idx % width;
+        let y = idx / width;
+        directions.iter().for_each(|(dx, dy)| {
+            if let Some(new_idx) = get_new_idx(width, height, x, y, dx, dy) {
+                if input[new_idx] == '#' {
+                    return;
+                }
+                let next_step = output[new_idx];
+                if next_step > step + 1 {
+                    output[new_idx] = step + 1;
+                    queue.push((new_idx, step + 1));
+                }
+            }
+        })
+    }
+
+    output
+        .iter()
+        .map(|v| {
+            if v == &u16::MAX {
+                None
+            } else {
+                Some(*v)
+            }
+        })
+        .collect()
+}
+
+fn get_flood_map_par(input: &str) -> Vec<Option<u16>> {
     let width = input.lines().next().unwrap().len();
     let height = input.lines().count();
 
@@ -257,7 +306,7 @@ mod tests {
         10#
         212"
     })]
-    fn get_flood_map_test(#[case] input: &str, #[case] expected: &str) {
+    fn get_flood_map_simple_test(#[case] input: &str, #[case] expected: &str) {
         let expected = expected
             .lines()
             .flat_map(|l| {
@@ -266,7 +315,40 @@ mod tests {
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
-        let result = get_flood_map(input);
+        let result = get_flood_map_simple(input);
+
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case::c01(indoc! {
+        "...
+        .S.
+        ..."
+    }, indoc! {
+        "212
+        101
+        212"
+    })]
+    #[case::c02(indoc! {
+        ".#.
+        .S#
+        ..."
+    }, indoc! {
+        "2##
+        10#
+        212"
+    })]
+    fn get_flood_map_par_test(#[case] input: &str, #[case] expected: &str) {
+        let expected = expected
+            .lines()
+            .flat_map(|l| {
+                l.chars()
+                    .map(|c| c.to_digit(10).map(|n| n as u16))
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        let result = get_flood_map_par(input);
 
         assert_eq!(result, expected);
     }
@@ -277,7 +359,8 @@ mod tests {
     #[case::example_3(EXAMPLE_1, 3, 6)]
     #[case::example_6(EXAMPLE_1, 6, 16)]
     fn calculate_1_test(#[case] input: &str, #[case] steps: u16, #[case] expected: u16) {
-        let result = calculate_1(input, steps);
+        let flood_map: Vec<Option<u16>> = get_flood_map_par(input);
+        let result = calculate_1(&flood_map, steps);
 
         assert_eq!(result, expected);
     }
