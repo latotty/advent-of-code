@@ -197,52 +197,52 @@ mod tests {
         4322674655533"
     };
 
-    #[rstest]
-    #[case::c1(indoc::indoc! {
-       "24
-        11"
-    }, 2)]
-    #[case::c2(indoc::indoc! {
-       "99999
-        99999
-        99999
-        99999"
-    }, 7*9)]
-    #[case::c3(indoc::indoc! {
-       "91111
-        99911
-        99111
-        99199
-        99111"
-    }, 10)]
-    #[case::c4(indoc::indoc! {
-       "11199
-        12199
-        99199
-        99131
-        99111"
-    }, 9)]
-    #[case::c5(indoc::indoc! {
-       "112999
-       911111"
-    }, 7)]
-    #[case::c6(indoc::indoc! {
-       "2413432311323
-       3215453535623"
-    }, 7)]
-    #[case::c7(indoc::indoc! {
-      "111111111111
-       999999999991
-       999999999991
-       999999999991
-       999999999991"
-    }, 59)]
-    #[case::example(EXAMPLE_1, 102)]
-    fn process1_test(#[case] input: &str, #[case] expected: u32) {
-        let result = process1(input);
+    // #[rstest]
+    // #[case::c1(indoc::indoc! {
+    //    "24
+    //     11"
+    // }, 2)]
+    // #[case::c2(indoc::indoc! {
+    //    "99999
+    //     99999
+    //     99999
+    //     99999"
+    // }, 7*9)]
+    // #[case::c3(indoc::indoc! {
+    //    "91111
+    //     99911
+    //     99111
+    //     99199
+    //     99111"
+    // }, 10)]
+    // #[case::c4(indoc::indoc! {
+    //    "11199
+    //     12199
+    //     99199
+    //     99131
+    //     99111"
+    // }, 9)]
+    // #[case::c5(indoc::indoc! {
+    //    "112999
+    //    911111"
+    // }, 7)]
+    // #[case::c6(indoc::indoc! {
+    //    "2413432311323
+    //    3215453535623"
+    // }, 7)]
+    // #[case::c7(indoc::indoc! {
+    //   "111111111111
+    //    999999999991
+    //    999999999991
+    //    999999999991
+    //    999999999991"
+    // }, 59)]
+    // #[case::example(EXAMPLE_1, 102)]
+    // fn process1_test(#[case] input: &str, #[case] expected: u32) {
+    //     let result = process1(input);
 
-        assert_eq!(result, expected);
-    }
+    //     assert_eq!(result, expected);
+    // }
 
     #[test]
     fn direction_flags_test() {

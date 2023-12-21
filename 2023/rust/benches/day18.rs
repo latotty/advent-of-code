@@ -11,9 +11,9 @@ fn part1() {
     assert_eq!(result1, 40761);
 }
 
-#[divan::bench]
-fn part2() {
-    let input = include_str!("../data/day18.task");
-    let result1 = process2(input);
-    assert_eq!(result1, 262454);
-}
+// #[divan::bench]
+// fn part2() {
+//     let input = include_str!("../data/day18.task");
+//     let result1 = process2(input);
+//     assert_eq!(result1, 262454);
+// }

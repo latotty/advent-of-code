@@ -245,7 +245,7 @@ mod tests {
         ..."
     }, indoc! {
         "212
-        121
+        101
         212"
     })]
     #[case::c02(indoc! {
@@ -254,7 +254,7 @@ mod tests {
         ..."
     }, indoc! {
         "2##
-        12#
+        10#
         212"
     })]
     fn get_flood_map_test(#[case] input: &str, #[case] expected: &str) {

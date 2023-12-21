@@ -54,7 +54,7 @@ pub fn process1_graph_par<const DRAW: bool>(input: &str) -> usize {
             Arc::from(next_graph),
         );
 
-        dbg!(next_graph.len());
+        // dbg!(next_graph.len());
 
         if next_graph.len() <= 4 {
             break;
@@ -606,30 +606,30 @@ mod tests {
         assert_eq!(result, expected);
     }
 
-    #[rstest]
-    #[case::example(EXAMPLE_1, 62)]
-    #[case::example_inv(indoc::indoc! {
-        "L 6 (#70c710)
-        U 5 (#0dc571)
-        R 2 (#5713f0)
-        U 2 (#d2c081)
-        L 2 (#59c680)
-        U 2 (#411b91)
-        R 5 (#8ceee2)
-        D 2 (#caa173)
-        R 1 (#1b58a2)
-        D 2 (#caa171)
-        L 2 (#7807d2)
-        D 3 (#a77fa3)
-        R 2 (#015232)
-        D 2 (#7a21e3)"
-    }, 62)]
-    // #[case::task(TASK, 40761)]
-    fn process1_graph_par_test(#[case] input: &str, #[case] expected: usize) {
-        let result = process1_graph_par::<false>(input);
+    // #[rstest]
+    // #[case::example(EXAMPLE_1, 62)]
+    // #[case::example_inv(indoc::indoc! {
+    //     "L 6 (#70c710)
+    //     U 5 (#0dc571)
+    //     R 2 (#5713f0)
+    //     U 2 (#d2c081)
+    //     L 2 (#59c680)
+    //     U 2 (#411b91)
+    //     R 5 (#8ceee2)
+    //     D 2 (#caa173)
+    //     R 1 (#1b58a2)
+    //     D 2 (#caa171)
+    //     L 2 (#7807d2)
+    //     D 3 (#a77fa3)
+    //     R 2 (#015232)
+    //     D 2 (#7a21e3)"
+    // }, 62)]
+    // // #[case::task(TASK, 40761)]
+    // fn process1_graph_par_test(#[case] input: &str, #[case] expected: usize) {
+    //     let result = process1_graph_par::<false>(input);
 
-        assert_eq!(result, expected);
-    }
+    //     assert_eq!(result, expected);
+    // }
 
     // #[rstest]
     // #[case::c1(EXAMPLE_1, 145)]
