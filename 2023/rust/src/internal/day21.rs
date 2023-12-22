@@ -98,7 +98,7 @@ pub fn process1_simple(input: &str) -> u16 {
 }
 
 pub fn process1_par(input: &str) -> u16 {
-    let flood_map: Vec<Option<u16>> = get_flood_map_par(input);
+    let flood_map: Vec<Option<u16>> = get_flood_map_par(input, None, None);
     calculate_1(&flood_map, 64)
 }
 
@@ -174,22 +174,36 @@ fn get_flood_map_simple(input: &str) -> Vec<Option<u16>> {
         .collect()
 }
 
-fn get_flood_map_par(input: &str) -> Vec<Option<u16>> {
+fn get_flood_map_par(input: &str, starting: Option<Vec<usize>>, initial: Option<Vec<Option<u16>>>) -> Vec<Option<u16>> {
     let width = input.lines().next().unwrap().len();
     let height = input.lines().count();
 
-    let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+    const DIRECTIONS: [(isize, isize); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
 
-    let mut output = Vec::<AtomicU16>::new();
-    output.resize_with(width * height, || {
-        AtomicU16::new(u16::MAX)
-    });
+    let output = if let Some(initial) = initial {
+        assert_eq!(initial.len(), width * height);
+        initial.iter().map(|v| if let Some(v) = v { AtomicU16::new(*v) } else { AtomicU16::new(u16::MAX) }).collect::<Vec<_>>()
+    } else {
+        let mut output = Vec::<AtomicU16>::new();
+        output.resize_with(width * height, || {
+            AtomicU16::new(u16::MAX)
+        });
+        output
+    };
+
     let output = Arc::new(output);
     let input = Arc::new(input.chars().filter(|c| c != &'\n').collect::<Vec<_>>());
 
-    let start_idx = input.iter().position(|c| c == &'S').unwrap();
-    output[start_idx].store(0, std::sync::atomic::Ordering::Relaxed);
-    let mut queue = vec![(start_idx, 0)];
+    let mut queue = Vec::new();
+    if let Some(starting) = starting {
+        starting.iter().for_each(|idx| {
+            queue.push((*idx, output[*idx].load(std::sync::atomic::Ordering::Relaxed)));
+        });
+    } else {
+        let start_idx = input.iter().position(|c| c == &'S').unwrap();
+        output[start_idx].store(0, std::sync::atomic::Ordering::Relaxed);
+        queue.push((start_idx, 0));
+    }
     while !queue.is_empty() {
         let new_queue = queue
             .par_iter()
@@ -198,7 +212,7 @@ fn get_flood_map_par(input: &str) -> Vec<Option<u16>> {
                 |(input, output), (idx, step)| {
                     let x = idx % width;
                     let y = idx / width;
-                    directions
+                    DIRECTIONS
                         .iter()
                         .filter_map(|(dx, dy)| {
                             if let Some(new_idx) = get_new_idx(width, height, x, y, dx, dy) {
@@ -348,7 +362,7 @@ mod tests {
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
-        let result = get_flood_map_par(input);
+        let result = get_flood_map_par(input, None, None);
 
         assert_eq!(result, expected);
     }
@@ -359,7 +373,7 @@ mod tests {
     #[case::example_3(EXAMPLE_1, 3, 6)]
     #[case::example_6(EXAMPLE_1, 6, 16)]
     fn calculate_1_test(#[case] input: &str, #[case] steps: u16, #[case] expected: u16) {
-        let flood_map: Vec<Option<u16>> = get_flood_map_par(input);
+        let flood_map: Vec<Option<u16>> = get_flood_map_par(input, None, None);
         let result = calculate_1(&flood_map, steps);
 
         assert_eq!(result, expected);
