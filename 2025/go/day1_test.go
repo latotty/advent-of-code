@@ -11,6 +11,7 @@ func TestDay1Example(t *testing.T) {
 		name        string
 		input       string
 		part1Result string
+		part2Result string
 	}{{
 		name: "example",
 		input: `L68
@@ -24,11 +25,13 @@ L99
 R14
 L82`,
 		part1Result: "3",
+		part2Result: "6",
 	}, {
 		name: "biggus",
 		input: `R250
 				L400`,
 		part1Result: "2",
+		part2Result: "7",
 	}}
 
 	for _, input := range tmap {
@@ -40,6 +43,11 @@ L82`,
 
 			require.NoError(t, err)
 			require.Equal(t, input.part1Result, result)
+
+			result, err = day.Part2()
+
+			require.NoError(t, err)
+			require.Equal(t, input.part2Result, result)
 		})
 	}
 }

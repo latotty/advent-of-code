@@ -14,6 +14,9 @@ type Day interface {
 type day1 struct {
 	input       string
 	parsedInput []int64
+
+	result1 string
+	result2 string
 }
 
 func NewDay1(input string) Day {
@@ -54,35 +57,59 @@ func (d *day1) parseInput() error {
 	return nil
 }
 
-const DAY1_DIALSIZE = 100
+func (d *day1) process() error {
+	if d.result1 != "" {
+		return nil
+	}
 
-func (d *day1) Part1() (string, error) {
 	if err := d.parseInput(); err != nil {
-		return "", err
+		return err
 	}
 
 	dialAt := int64(50)
 
 	atZero := 0
+	passedZero := 0
 	for _, step := range d.parsedInput {
+		startAtZero := dialAt == 0
+		passedZero += int(AbsInt64(step) / 100)
+		step %= 100
+
 		dialAt += step
+		if (!startAtZero && dialAt < 0) || dialAt > 100 {
+			passedZero++
+		}
+
 		dialAt %= 100
 
 		if dialAt < 0 {
-			dialAt = 100 + (dialAt)
+			dialAt = 100 + dialAt
 		}
 
 		if dialAt == 0 {
+			if !startAtZero {
+				passedZero++
+			}
 			atZero++
 		}
 
-		// fmt.Printf("%d -> %d -> %d\n", step, dialAt, atZero)
-
+		// fmt.Printf("%d -> %d -> %d | %d\n", step, dialAt, atZero, passedZero)
 	}
 
-	return fmt.Sprintf("%d", atZero), nil
+	d.result1 = fmt.Sprintf("%d", atZero)
+	d.result2 = fmt.Sprintf("%d", passedZero)
+
+	return nil
+}
+
+func (d *day1) Part1() (string, error) {
+	d.process()
+
+	return d.result1, nil
 }
 
 func (d *day1) Part2() (string, error) {
-	return "0", nil
+	d.process()
+
+	return d.result2, nil
 }
