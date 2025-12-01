@@ -1,0 +1,46 @@
+min_version = "2025.11.11"
+
+[settings]
+auto_install = true
+experimental = true
+
+[tools]
+go = "1.25.1"
+gotestsum = "1.12.0"
+
+[tasks.test]
+description = "Run all tests for Go solutions"
+run = "gotestsum --format-hide-empty-pkg --hide-summary skipped -- -v -count=1 -race -shuffle=on ./..."
+
+[tasks.day]
+description = "Run solution for a specific day/part"
+quiet = true
+usage = '''
+arg "<day>" help="Day and optional part (e.g., 1 or 1/1)"
+arg "[input]" help="Input file path or - for stdin" default="-"
+'''
+run = "go run . day${usage_day?} ${usage_input?}"
+
+[tasks.build]
+description = "Build the Go solutions binary"
+run = "go build -o aoc ."
+
+[tasks.build_prod]
+description = "Build optimized binary to target folder"
+quiet = true
+run = "mkdir -p target && go build -ldflags='-s -w' -o target/aoc ."
+sources = [
+  "go.mod",
+  "**/*.go",
+]
+outputs = { auto = true }
+
+[tasks.day_prod]
+description = "Run solution using optimized binary"
+quiet = true
+usage = '''
+arg "<day>" help="Day and optional part (e.g., 1 or 1/1)"
+arg "[input]" help="Input file path or - for stdin" default="-"
+'''
+depends = ["build_prod"]
+run = "./target/aoc day${usage_day?} ${usage_input?}"
