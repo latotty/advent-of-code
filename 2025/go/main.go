@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var days = map[string]func(io.Reader) Day{
+var days = map[string]func(string) Day{
 	"day1": NewDay1,
 }
 
@@ -49,6 +49,14 @@ func main() {
 		inputReader = file
 	}
 
+	var input string
+	if b, err := io.ReadAll(inputReader); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to read input: %v\n", err)
+		os.Exit(1)
+	} else {
+		input = string(b)
+	}
+
 	// Look up day constructor
 	constructor, ok := days[dayName]
 	if !ok {
@@ -57,7 +65,7 @@ func main() {
 	}
 
 	// Create day instance
-	day := constructor(inputReader)
+	day := constructor(input)
 
 	// Run requested parts
 	hasError := false
