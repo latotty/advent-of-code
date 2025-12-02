@@ -9,6 +9,7 @@ import (
 
 var days = map[string]func(string) Day{
 	"day1": NewDay1,
+	"day2": NewDay2,
 }
 
 func main() {
