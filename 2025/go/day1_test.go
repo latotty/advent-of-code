@@ -7,6 +7,8 @@ import (
 )
 
 func TestDay1Example(t *testing.T) {
+	t.Parallel()
+
 	tmap := []struct {
 		name        string
 		input       string
@@ -36,7 +38,7 @@ L82`,
 
 	for _, input := range tmap {
 		t.Run(input.name, func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 
 			day := NewDay1(input.input)
 			result, err := day.Part1()
