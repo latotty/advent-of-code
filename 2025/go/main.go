@@ -11,6 +11,7 @@ var days = map[string]func(string) Day{
 	"day1": NewDay1,
 	"day2": NewDay2,
 	"day3": NewDay3,
+	"day4": NewDay4,
 }
 
 func main() {
