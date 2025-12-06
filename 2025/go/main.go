@@ -13,6 +13,7 @@ var days = map[string]func(string) Day{
 	"day3": NewDay3,
 	"day4": NewDay4,
 	"day5": NewDay5,
+	"day6": NewDay6,
 }
 
 func main() {
