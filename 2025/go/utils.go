@@ -3,6 +3,7 @@ package main
 import (
 	"cmp"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -30,4 +31,19 @@ func MaxCmp[T cmp.Ordered](a, b T) T {
 	}
 
 	return b
+}
+
+func FindAllIdx(s, substr string) []int {
+	res := make([]int, 0)
+	for i := 0; i < len(s); {
+		idx := strings.Index(s[i:], substr)
+		if idx == -1 {
+			return res
+		}
+
+		res = append(res, i+idx)
+		i += idx + 1
+	}
+
+	return res
 }
