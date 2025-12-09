@@ -13,7 +13,7 @@ type Day interface {
 
 type day1 struct {
 	input       string
-	parsedInput []int64
+	parsedInput []int
 
 	result1 string
 	result2 string
@@ -37,7 +37,7 @@ func (d *day1) parseInput() error {
 
 		numText := line[1:]
 
-		num, err := strconv.ParseInt(numText, 10, 32)
+		num, err := strconv.Atoi(numText)
 		if err != nil {
 			return fmt.Errorf("invalid number %s: %w", numText, err)
 		}
@@ -66,13 +66,13 @@ func (d *day1) process() error {
 		return err
 	}
 
-	dialAt := int64(50)
+	dialAt := 50
 
 	atZero := 0
 	passedZero := 0
 	for _, step := range d.parsedInput {
 		startAtZero := dialAt == 0
-		passedZero += int(AbsInt64(step) / 100)
+		passedZero += AbsInt(step) / 100
 		step %= 100
 
 		dialAt += step

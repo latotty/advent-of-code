@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func AbsInt64(num int64) int64 {
+func AbsInt(num int) int {
 	if num < 0 {
 		return num * -1
 	}
