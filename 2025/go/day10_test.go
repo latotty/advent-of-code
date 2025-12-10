@@ -20,7 +20,7 @@ func TestDay10Example(t *testing.T) {
 [...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
 [.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}`,
 		part1Result: "7",
-		part2Result: "0",
+		part2Result: "33",
 	}}
 
 	for _, input := range tmap {

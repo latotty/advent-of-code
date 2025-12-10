@@ -30,12 +30,19 @@ func (d *day10) Part1() (string, error) {
 func (d *day10) Part2() (string, error) {
 	var result int
 
+	for _, line := range strings.Split(strings.TrimSpace(d.input), "\n") {
+		machine := &day10Machine{}
+		machine.parseLine(line)
+		result += machine.joltageUp()
+	}
+
 	return fmt.Sprintf("%d", result), nil
 }
 
 type day10Machine struct {
-	lightsTarget string
-	switches     [][]int
+	lightsTarget  string
+	joltageTarget []int
+	switches      [][]int
 }
 
 func (m *day10Machine) parseLine(line string) {
@@ -65,6 +72,18 @@ func (m *day10Machine) parseLine(line string) {
 				switchIdxs[i] = num
 			}
 			m.switches = append(m.switches, switchIdxs)
+		case '{':
+			part = part[1 : len(part)-1]
+			idxs := strings.Split(part, ",")
+			m.joltageTarget = make([]int, len(idxs))
+			for i, idxStr := range idxs {
+				num, err := strconv.Atoi(idxStr)
+				if err != nil {
+					panic(err)
+				}
+				m.joltageTarget[i] = num
+			}
+
 		}
 	}
 }
@@ -124,6 +143,63 @@ func (m *day10Machine) switchOn() int {
 			}
 		}
 		nextLights = newLights
+	}
+
+	return 0
+}
+
+func (m *day10Machine) joltageUp() int {
+	nextJoltages := make([][]int, 0)
+	stepMap := make(map[string]int, 0)
+
+	defaultJoltage := make([]int, len(m.lightsTarget))
+	stepMap[fmt.Sprintf("%v", defaultJoltage)] = 0
+	nextJoltages = append(nextJoltages, defaultJoltage)
+
+	for stepIdx := 1; true; stepIdx++ {
+		newJoltages := make([][]int, 0)
+		for _, joltage := range nextJoltages {
+			matchingSwitches := Filter(m.switches, func(switches []int) bool {
+				var hasGood bool
+				for _, s := range switches {
+					if joltage[s] < m.joltageTarget[s] {
+						hasGood = true
+					} else {
+						return false
+					}
+				}
+
+				return hasGood
+			})
+
+			// fmt.Printf("---\n%v <- %v\n", joltage, matchingSwitches)
+
+			for _, ms := range matchingSwitches {
+				tempJoltage := make([]int, len(joltage))
+				copy(tempJoltage, joltage)
+
+				for _, s := range ms {
+					tempJoltage[s]++
+				}
+
+				// fmt.Printf("%v <- %v\n", tempJoltage, ms)
+
+				if slices.Equal(m.joltageTarget, tempJoltage) {
+					return stepIdx
+				}
+				key := fmt.Sprintf("%v", tempJoltage)
+				if _, ok := stepMap[key]; ok {
+					continue
+				}
+
+				stepMap[key] = stepIdx
+				newJoltages = append(newJoltages, tempJoltage)
+			}
+		}
+		nextJoltages = newJoltages
+		if len(nextJoltages) == 0 {
+			panic("damn")
+		}
 	}
 
 	return 0
