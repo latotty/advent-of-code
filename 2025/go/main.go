@@ -8,15 +8,16 @@ import (
 )
 
 var days = map[string]func(string) Day{
-	"day1": NewDay1,
-	"day2": NewDay2,
-	"day3": NewDay3,
-	"day4": NewDay4,
-	"day5": NewDay5,
-	"day6": NewDay6,
-	"day7": NewDay7,
-	"day8": NewDay8,
-	"day9": NewDay9,
+	"day1":  NewDay1,
+	"day2":  NewDay2,
+	"day3":  NewDay3,
+	"day4":  NewDay4,
+	"day5":  NewDay5,
+	"day6":  NewDay6,
+	"day7":  NewDay7,
+	"day8":  NewDay8,
+	"day9":  NewDay9,
+	"day10": NewDay10,
 }
 
 func main() {
