@@ -44,6 +44,14 @@ func MinCmp[T cmp.Ordered](a, b T) T {
 	return b
 }
 
+func MinMaxCmp[T cmp.Ordered](a, b T) (T, T) {
+	if a < b {
+		return a, b
+	}
+
+	return b, a
+}
+
 func FindAllIdx(s, substr string) []int {
 	res := make([]int, 0)
 	for i := 0; i < len(s); {
@@ -61,6 +69,13 @@ func FindAllIdx(s, substr string) []int {
 
 func PowInt(x, y int) int {
 	return int(math.Pow(float64(x), float64(y)))
+}
+
+func OverflowIndex[T any](a []T, i int) T {
+	if i >= len(a) {
+		i -= len(a)
+	}
+	return a[i]
 }
 
 type Pos3 struct {
@@ -129,10 +144,45 @@ func NewPos2FromStrSlice(strCoords []string) (*Pos2, error) {
 	return &Pos2{intCoords[0], intCoords[1]}, nil
 }
 
-func (p1 *Pos2) Area(p2 *Pos2) int {
-	return (AbsInt(p2.X-p1.X) + 1) * (AbsInt(p2.Y-p1.Y) + 1)
+func (p *Pos2) String() string {
+	return fmt.Sprintf("Pos2{%d,%d}", p.X, p.Y)
 }
 
-func (p *Pos2) GoString() string {
-	return fmt.Sprintf("Pos{%d,%d}", p.X, p.Y)
+func (p1 *Pos2) Equals(p2 *Pos2) bool {
+	return p1.X == p2.X && p1.Y == p2.Y
+}
+
+func GetSquareEdges(p1, p2 *Pos2) [][]*Pos2 {
+	minX, maxX := MinMaxCmp(p1.X, p2.X)
+	minY, maxY := MinMaxCmp(p1.Y, p2.Y)
+
+	corners := []*Pos2{{minX, minY}, {maxX, minY}, {maxX, maxY}, {minX, maxY}}
+
+	return [][]*Pos2{
+		{corners[0], corners[1]},
+		{corners[1], corners[2]},
+		{corners[2], corners[3]},
+		{corners[3], corners[0]},
+	}
+}
+
+func Filter[T any](ss []T, test func(T) bool) (ret []T) {
+	for _, s := range ss {
+		if test(s) {
+			ret = append(ret, s)
+		}
+	}
+	return
+}
+
+func PrintGrid[T byte | int](grid [][]T, padding int) {
+	format := fmt.Sprintf("%%%dd", padding)
+	fmt.Println("---")
+	for _, line := range grid {
+		for _, c := range line {
+			fmt.Printf(format, c)
+		}
+		fmt.Printf("\n")
+	}
+	fmt.Println("---")
 }
