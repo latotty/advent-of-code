@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/latotty/advent-of-code/2025/go/vecn"
 )
 
 type day10 struct {
@@ -43,6 +46,7 @@ type day10Machine struct {
 	lightsTarget  string
 	joltageTarget []int
 	switches      [][]int
+	switchVecs    [][]int
 }
 
 func (m *day10Machine) parseLine(line string) {
@@ -72,6 +76,13 @@ func (m *day10Machine) parseLine(line string) {
 				switchIdxs[i] = num
 			}
 			m.switches = append(m.switches, switchIdxs)
+
+			switchVec := make([]int, len(m.lightsTarget))
+			for _, s := range switchIdxs {
+				switchVec[s] = 1
+			}
+			m.switchVecs = append(m.switchVecs, switchVec)
+
 		case '{':
 			part = part[1 : len(part)-1]
 			idxs := strings.Split(part, ",")
@@ -149,58 +160,76 @@ func (m *day10Machine) switchOn() int {
 }
 
 func (m *day10Machine) joltageUp() int {
-	nextJoltages := make([][]int, 0)
-	stepMap := make(map[string]int, 0)
+	best := math.MaxInt
+	stepMap := make(map[string]int)
+	explored := 0
 
-	defaultJoltage := make([]int, len(m.lightsTarget))
-	stepMap[fmt.Sprintf("%v", defaultJoltage)] = 0
-	nextJoltages = append(nextJoltages, defaultJoltage)
+	var search func(current []int, switchIdx, stepsSoFar int) (int, bool)
+	search = func(current []int, switchIdx, stepsSoFar int) (int, bool) {
+		explored++
+		if explored%100000 == 0 {
+			fmt.Printf("Explored %d states, best=%d\n", explored, best)
+		}
 
-	for stepIdx := 1; true; stepIdx++ {
-		newJoltages := make([][]int, 0)
-		for _, joltage := range nextJoltages {
-			matchingSwitches := Filter(m.switches, func(switches []int) bool {
-				var hasGood bool
-				for _, s := range switches {
-					if joltage[s] < m.joltageTarget[s] {
-						hasGood = true
-					} else {
-						return false
-					}
-				}
+		if stepsSoFar >= best {
+			return 0, false
+		}
 
-				return hasGood
-			})
+		stepMapKey := fmt.Sprintf("%v-%d", current, switchIdx)
 
-			// fmt.Printf("---\n%v <- %v\n", joltage, matchingSwitches)
+		if val, ok := stepMap[stepMapKey]; ok {
+			return val, true
+		}
 
-			for _, ms := range matchingSwitches {
-				tempJoltage := make([]int, len(joltage))
-				copy(tempJoltage, joltage)
+		if vecn.Equals(m.joltageTarget, current) {
+			if stepsSoFar < best {
+				best = stepsSoFar // Update shared best
+			}
+			return 0, true
+		}
 
-				for _, s := range ms {
-					tempJoltage[s]++
-				}
+		if switchIdx >= len(m.switchVecs) {
+			return 0, false
+		}
 
-				// fmt.Printf("%v <- %v\n", tempJoltage, ms)
+		smallest := math.MaxInt
 
-				if slices.Equal(m.joltageTarget, tempJoltage) {
-					return stepIdx
-				}
-				key := fmt.Sprintf("%v", tempJoltage)
-				if _, ok := stepMap[key]; ok {
-					continue
-				}
+		currSwitch := m.switchVecs[switchIdx]
 
-				stepMap[key] = stepIdx
-				newJoltages = append(newJoltages, tempJoltage)
+		rem := vecn.Sub(m.joltageTarget, current)
+		div := vecn.Div(rem, currSwitch)
+		// fmt.Printf("div %v / %v = %d\n", rem, currSwitch, div)
+
+		for i := div; i >= 0; i-- {
+			if stepsSoFar+i >= best {
+				continue
+			}
+
+			next := vecn.Add(current, vecn.Mul(currSwitch, i))
+			// fmt.Printf("try %v * %d for %v -> %v\n", currSwitch, i, current, next)
+			res, ok := search(next, switchIdx+1, stepsSoFar+i)
+			res += i
+			if !ok {
+				continue
+			}
+			// fmt.Printf("nice:%d (%d)\n", res, i)
+			if res == 1 {
+				return res, true
+			}
+			if res < smallest {
+				smallest = res
 			}
 		}
-		nextJoltages = newJoltages
-		if len(nextJoltages) == 0 {
-			panic("damn")
+
+		if smallest < math.MaxInt {
+			stepMap[stepMapKey] = smallest
 		}
+		return smallest, smallest < math.MaxInt
 	}
 
-	return 0
+	res, ok := search(make([]int, len(m.joltageTarget)), 0, 0)
+	if !ok {
+		panic("damn")
+	}
+	return res
 }
