@@ -188,19 +188,32 @@ func PrintGrid[T byte | int](grid [][]T, padding int) {
 	fmt.Println("---")
 }
 
-func Combinations[T any](arr []T) iter.Seq[[]T] {
+func CombinationsFromRight[T int](arr []T) iter.Seq[[]T] {
 	return func(yield func([]T) bool) {
 		n := len(arr)
 
-		for i := 1; i < (1 << n); i++ {
-			combo := make([]T, 0, n)
-			for j := 0; j < n; j++ {
-				if i&(1<<j) != 0 {
-					combo = append(combo, arr[j])
+		if !yield(arr) {
+			return
+		}
+
+		for {
+			rightMostNonZero := 0
+			for i := 0; i < n; i++ {
+				if arr[i] != 0 {
+					rightMostNonZero = i
 				}
 			}
 
-			if !yield(combo) {
+			if rightMostNonZero == 0 {
+				return
+			}
+
+			tmp := arr[rightMostNonZero]
+			arr[rightMostNonZero] = 0
+			arr[rightMostNonZero-1]++
+			arr[n-1] = tmp - 1
+
+			if !yield(arr) {
 				return
 			}
 		}

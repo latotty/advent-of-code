@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/latotty/advent-of-code/2025/go/vecn"
 )
@@ -160,91 +161,80 @@ func (m *day10Machine) switchOn() int {
 }
 
 func (m *day10Machine) joltageUp() int {
-	best := math.MaxInt
+	zero := make([]int, len(m.joltageTarget))
 
 	counter := 0
+	start := time.Now()
 
-	var search func(spotIdx int, current []int, totalPresses int)
-	search = func(spotIdx int, current []int, totalPresses int) {
+	var search func(remaining []int, switchVecs [][]int) int
+	search = func(remaining []int, switchVecs [][]int) int {
 		counter++
-		if counter%1000000 == 0 {
-			fmt.Printf("current: %v target: %v spotIdx: %d totalPresses: %d best: %d counter: %d\n", current, m.joltageTarget, spotIdx, totalPresses, best, counter)
+		if counter%100000 == 0 {
+			elapsed := time.Since(start).Seconds()
+			fmt.Printf("\rStates: %dM | Time: %.1fs | Rate: %.0fk/s",
+				counter/1000000, elapsed, float64(counter)/elapsed/1000)
 		}
 
-		if totalPresses >= best {
-			return
+		if slices.Equal(remaining, zero) {
+			return 0
 		}
 
-		if vecn.Equals(m.joltageTarget, current) {
-			best = totalPresses
-			return
-		}
-
-		if spotIdx >= len(m.joltageTarget) {
-			return
-		}
-
-		spotTarget := m.joltageTarget[spotIdx]
-		if current[spotIdx] == spotTarget {
-			search(spotIdx+1, current, totalPresses)
-			return
-		}
-
-		var relevantSwitches [][]int
-	switchLoop:
-		for _, s := range m.switchVecs {
-			for i := 0; i < spotIdx; i++ {
+		minAffectingCount := math.MaxInt
+		targetPosition := -1
+		for i := 0; i < len(remaining); i++ {
+			ac := 0
+			for _, s := range switchVecs {
 				if s[i] > 0 {
-					continue switchLoop
+					ac++
 				}
 			}
-			if s[spotIdx] == 0 {
+			if ac > 0 && ac < minAffectingCount || (ac == minAffectingCount && remaining[targetPosition] < remaining[i]) {
+				targetPosition = i
+				minAffectingCount = ac
+			}
+		}
+
+		availableSwitches := make([][]int, 0, len(switchVecs))
+		nextAvailableSwitches := make([][]int, 0, len(switchVecs))
+		for _, s := range switchVecs {
+			if s[targetPosition] > 0 {
+				availableSwitches = append(availableSwitches, s)
+			} else {
+				nextAvailableSwitches = append(nextAvailableSwitches, s)
+			}
+		}
+
+		if len(availableSwitches) == 0 {
+			return math.MaxInt
+		}
+
+		counts := make([]int, len(availableSwitches))
+		counts[len(counts)-1] = remaining[targetPosition]
+
+		nextRemaining := make([]int, len(remaining))
+
+		result := math.MaxInt
+
+		for counts := range CombinationsFromRight(counts) {
+			copy(nextRemaining, remaining)
+			for i, c := range counts {
+				vecn.SubMut(nextRemaining, vecn.Mul(availableSwitches[i], c))
+			}
+
+			if vecn.AnyNegative(nextRemaining) {
 				continue
 			}
 
-			div := vecn.Div(vecn.Sub(m.joltageTarget, current), s)
-			if div > 0 {
-				relevantSwitches = append(relevantSwitches, s)
+			res := search(nextRemaining, nextAvailableSwitches)
+			if res != math.MaxInt {
+				result = MinCmp(result, res+remaining[targetPosition])
 			}
 		}
 
-		if len(relevantSwitches) == 0 {
-			return
-		}
-
-		pruneMap := make(map[string]bool)
-
-		var groupSearch func(next []int, idx, totalPresses int)
-		groupSearch = func(next []int, idx, totalPresses int) {
-			if idx >= len(relevantSwitches) {
-				return
-			}
-
-			s := relevantSwitches[idx]
-			div := vecn.Div(vecn.Sub(m.joltageTarget, next), s)
-
-			if div == 0 {
-				groupSearch(next, idx+1, totalPresses)
-				return
-			}
-
-			for n := div; n >= 0; n-- {
-				nextnext := vecn.Add(next, vecn.Mul(s, n))
-
-				if nextnext[spotIdx] == spotTarget {
-					if _, ok := pruneMap[fmt.Sprintf("%v", nextnext)]; !ok {
-						pruneMap[fmt.Sprintf("%v", nextnext)] = true
-						search(spotIdx+1, nextnext, totalPresses+n)
-					}
-				} else {
-					groupSearch(nextnext, idx+1, totalPresses+n)
-				}
-			}
-		}
-
-		groupSearch(current, 0, totalPresses)
+		return result
 	}
 
-	search(0, make([]int, len(m.joltageTarget)), 0)
-	return best
+	result := search(m.joltageTarget, m.switchVecs)
+	fmt.Printf("\n✅ Final: %d (explored %dM states in %.1fs)\n", result, counter/1000000, time.Since(start).Seconds())
+	return result
 }

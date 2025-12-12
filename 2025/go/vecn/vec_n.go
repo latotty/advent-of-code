@@ -2,12 +2,7 @@ package vecn
 
 import (
 	"math"
-	"slices"
 )
-
-func Equals(v1, v2 []int) bool {
-	return slices.Equal(v1, v2)
-}
 
 func Add(v1, v2 []int) []int {
 	if len(v1) != len(v2) {
@@ -35,6 +30,16 @@ func Sub(v1, v2 []int) []int {
 	}
 
 	return res
+}
+
+func SubMut(v1, v2 []int) {
+	if len(v1) != len(v2) {
+		panic("difflen")
+	}
+
+	for i, n := range v2 {
+		v1[i] -= n
+	}
 }
 
 func Mul(v1 []int, num int) []int {
@@ -72,16 +77,20 @@ func Div(v1, v2 []int) int {
 	return resDiv
 }
 
-func AllLte(v1, v2 []int) bool {
-	if len(v1) != len(v2) {
-		panic("difflen")
+func Sum(v1 []int) int {
+	sum := 0
+	for _, n := range v1 {
+		sum += n
 	}
+	return sum
+}
 
-	for i := 0; i < len(v1); i++ {
-		if v1[i] > v2[i] {
-			return false
+func AnyNegative(v1 []int) bool {
+	for _, n := range v1 {
+		if n < 0 {
+			return true
 		}
 	}
 
-	return true
+	return false
 }
