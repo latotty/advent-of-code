@@ -1,6 +1,7 @@
 package vecn
 
 import (
+	"math"
 	"slices"
 )
 
@@ -52,7 +53,7 @@ func Div(v1, v2 []int) int {
 		panic("difflen")
 	}
 
-	var resDiv int
+	resDiv := math.MaxInt
 
 	for i := 0; i < len(v1); i++ {
 		if v2[i] == 0 {
@@ -60,9 +61,12 @@ func Div(v1, v2 []int) int {
 		}
 		div := v1[i] / v2[i]
 
-		if resDiv == 0 || resDiv > div {
+		if resDiv > div {
 			resDiv = div
 		}
+	}
+	if resDiv == math.MaxInt {
+		return 0
 	}
 
 	return resDiv
