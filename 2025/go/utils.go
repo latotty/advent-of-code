@@ -3,6 +3,7 @@ package main
 import (
 	"cmp"
 	"fmt"
+	"iter"
 	"math"
 	"os"
 	"strconv"
@@ -185,4 +186,23 @@ func PrintGrid[T byte | int](grid [][]T, padding int) {
 		fmt.Printf("\n")
 	}
 	fmt.Println("---")
+}
+
+func Combinations[T any](arr []T) iter.Seq[[]T] {
+	return func(yield func([]T) bool) {
+		n := len(arr)
+
+		for i := 1; i < (1 << n); i++ {
+			combo := make([]T, 0, n)
+			for j := 0; j < n; j++ {
+				if i&(1<<j) != 0 {
+					combo = append(combo, arr[j])
+				}
+			}
+
+			if !yield(combo) {
+				return
+			}
+		}
+	}
 }

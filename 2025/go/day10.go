@@ -162,9 +162,14 @@ func (m *day10Machine) switchOn() int {
 func (m *day10Machine) joltageUp() int {
 	best := math.MaxInt
 
+	counter := 0
+
 	var search func(spotIdx int, current []int, totalPresses int)
 	search = func(spotIdx int, current []int, totalPresses int) {
-		fmt.Printf("current: %v target: %v spotIdx: %d\n", current, m.joltageTarget, spotIdx)
+		counter++
+		if counter%1000000 == 0 {
+			fmt.Printf("current: %v target: %v spotIdx: %d totalPresses: %d best: %d counter: %d\n", current, m.joltageTarget, spotIdx, totalPresses, best, counter)
+		}
 
 		if totalPresses >= best {
 			return
@@ -176,6 +181,12 @@ func (m *day10Machine) joltageUp() int {
 		}
 
 		if spotIdx >= len(m.joltageTarget) {
+			return
+		}
+
+		spotTarget := m.joltageTarget[spotIdx]
+		if current[spotIdx] == spotTarget {
+			search(spotIdx+1, current, totalPresses)
 			return
 		}
 
@@ -201,45 +212,37 @@ func (m *day10Machine) joltageUp() int {
 			return
 		}
 
-		spotTarget := m.joltageTarget[spotIdx]
+		pruneMap := make(map[string]bool)
 
-		for group := range Combinations(relevantSwitches) {
-			sum := 0
-			for _, s := range group {
-				sum += vecn.Div(vecn.Sub(m.joltageTarget, current), s)
+		var groupSearch func(next []int, idx, totalPresses int)
+		groupSearch = func(next []int, idx, totalPresses int) {
+			if idx >= len(relevantSwitches) {
+				return
 			}
 
-			if sum < spotTarget { // can't produce the spot
-				continue
+			s := relevantSwitches[idx]
+			div := vecn.Div(vecn.Sub(m.joltageTarget, next), s)
+
+			if div == 0 {
+				groupSearch(next, idx+1, totalPresses)
+				return
 			}
 
-			var groupSearch func(next []int, idx, totalPresses int)
-			groupSearch = func(next []int, idx, totalPresses int) {
-				if idx >= len(group) {
-					return
-				}
+			for n := div; n >= 0; n-- {
+				nextnext := vecn.Add(next, vecn.Mul(s, n))
 
-				s := group[idx]
-				div := vecn.Div(vecn.Sub(m.joltageTarget, next), s)
-
-				for n := div; n >= 0; n-- {
-					nextnext := vecn.Add(next, vecn.Mul(s, n))
-					if nextnext[spotIdx] == spotTarget {
+				if nextnext[spotIdx] == spotTarget {
+					if _, ok := pruneMap[fmt.Sprintf("%v", nextnext)]; !ok {
+						pruneMap[fmt.Sprintf("%v", nextnext)] = true
 						search(spotIdx+1, nextnext, totalPresses+n)
-					} else {
-						groupSearch(nextnext, idx+1, totalPresses+n)
 					}
+				} else {
+					groupSearch(nextnext, idx+1, totalPresses+n)
 				}
 			}
-
-			next := make([]int, len(current))
-			copy(next, current)
-			for _, s := range group {
-				next = vecn.Add(next, s)
-			}
-
-			groupSearch(next, 0, totalPresses+len(group))
 		}
+
+		groupSearch(current, 0, totalPresses)
 	}
 
 	search(0, make([]int, len(m.joltageTarget)), 0)
