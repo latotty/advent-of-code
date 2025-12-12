@@ -161,75 +161,87 @@ func (m *day10Machine) switchOn() int {
 
 func (m *day10Machine) joltageUp() int {
 	best := math.MaxInt
-	stepMap := make(map[string]int)
-	explored := 0
 
-	var search func(current []int, switchIdx, stepsSoFar int) (int, bool)
-	search = func(current []int, switchIdx, stepsSoFar int) (int, bool) {
-		explored++
-		if explored%100000 == 0 {
-			fmt.Printf("Explored %d states, best=%d\n", explored, best)
-		}
+	var search func(spotIdx int, current []int, totalPresses int)
+	search = func(spotIdx int, current []int, totalPresses int) {
+		fmt.Printf("current: %v target: %v spotIdx: %d\n", current, m.joltageTarget, spotIdx)
 
-		if stepsSoFar >= best {
-			return 0, false
-		}
-
-		stepMapKey := fmt.Sprintf("%v-%d", current, switchIdx)
-
-		if val, ok := stepMap[stepMapKey]; ok {
-			return val, true
+		if totalPresses >= best {
+			return
 		}
 
 		if vecn.Equals(m.joltageTarget, current) {
-			if stepsSoFar < best {
-				best = stepsSoFar // Update shared best
+			best = totalPresses
+			return
+		}
+
+		if spotIdx >= len(m.joltageTarget) {
+			return
+		}
+
+		var relevantSwitches [][]int
+	switchLoop:
+		for _, s := range m.switchVecs {
+			for i := 0; i < spotIdx; i++ {
+				if s[i] > 0 {
+					continue switchLoop
+				}
 			}
-			return 0, true
-		}
-
-		if switchIdx >= len(m.switchVecs) {
-			return 0, false
-		}
-
-		smallest := math.MaxInt
-
-		currSwitch := m.switchVecs[switchIdx]
-
-		rem := vecn.Sub(m.joltageTarget, current)
-		div := vecn.Div(rem, currSwitch)
-		// fmt.Printf("div %v / %v = %d\n", rem, currSwitch, div)
-
-		for i := div; i >= 0; i-- {
-			if stepsSoFar+i >= best {
+			if s[spotIdx] == 0 {
 				continue
 			}
 
-			next := vecn.Add(current, vecn.Mul(currSwitch, i))
-			// fmt.Printf("try %v * %d for %v -> %v\n", currSwitch, i, current, next)
-			res, ok := search(next, switchIdx+1, stepsSoFar+i)
-			res += i
-			if !ok {
+			div := vecn.Div(vecn.Sub(m.joltageTarget, current), s)
+			if div > 0 {
+				relevantSwitches = append(relevantSwitches, s)
+			}
+		}
+
+		if len(relevantSwitches) == 0 {
+			return
+		}
+
+		spotTarget := m.joltageTarget[spotIdx]
+
+		for group := range Combinations(relevantSwitches) {
+			sum := 0
+			for _, s := range group {
+				sum += vecn.Div(vecn.Sub(m.joltageTarget, current), s)
+			}
+
+			if sum < spotTarget { // can't produce the spot
 				continue
 			}
-			// fmt.Printf("nice:%d (%d)\n", res, i)
-			if res == 1 {
-				return res, true
-			}
-			if res < smallest {
-				smallest = res
-			}
-		}
 
-		if smallest < math.MaxInt {
-			stepMap[stepMapKey] = smallest
+			var groupSearch func(next []int, idx, totalPresses int)
+			groupSearch = func(next []int, idx, totalPresses int) {
+				if idx >= len(group) {
+					return
+				}
+
+				s := group[idx]
+				div := vecn.Div(vecn.Sub(m.joltageTarget, next), s)
+
+				for n := div; n >= 0; n-- {
+					nextnext := vecn.Add(next, vecn.Mul(s, n))
+					if nextnext[spotIdx] == spotTarget {
+						search(spotIdx+1, nextnext, totalPresses+n)
+					} else {
+						groupSearch(nextnext, idx+1, totalPresses+n)
+					}
+				}
+			}
+
+			next := make([]int, len(current))
+			copy(next, current)
+			for _, s := range group {
+				next = vecn.Add(next, s)
+			}
+
+			groupSearch(next, 0, totalPresses+len(group))
 		}
-		return smallest, smallest < math.MaxInt
 	}
 
-	res, ok := search(make([]int, len(m.joltageTarget)), 0, 0)
-	if !ok {
-		panic("damn")
-	}
-	return res
+	search(0, make([]int, len(m.joltageTarget)), 0)
+	return best
 }
